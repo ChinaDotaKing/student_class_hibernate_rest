@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfessorHibernateDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.dao.hibernateDao</a> &gt; <span class="el_source">ProfessorHibernateDao.java</span></div><h1>ProfessorHibernateDao.java</h1><pre class="source lang-java linenums">package org.example.dao.hibernateDao;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.example.dao.AbstractHibernateDao;
+import org.example.dao.InterF.PrerequisiteDao;
+import org.example.dao.InterF.ProfessorDao;
+import org.example.domain.Professor;
+import org.example.domain.WebRegClass;
+import org.example.domain.hibernate.PrerequisiteHibernate;
+import org.example.domain.hibernate.ProfessorHibernate;
+import org.example.domain.hibernate.WebRegClassHibernate;
+
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+@Getter
+@Setter
+@Repository(&quot;ProfessorDaoHibernate&quot;)
+@Transactional
+<span class="nc" id="L27">public class ProfessorHibernateDao extends AbstractHibernateDao&lt;ProfessorHibernate&gt; implements ProfessorDao {</span>
+
+
+    @Override
+    public Professor getProfessorById(int id) {
+<span class="nc" id="L32">        ProfessorHibernate professorHibernate=sessionFactory.getCurrentSession().get(ProfessorHibernate.class,id);</span>
+<span class="nc" id="L33">        return  professorHibernate;</span>
+    }
+
+    @Override
+    public Professor getProfessorByClass(WebRegClass c) {
+<span class="nc" id="L38">        Session session=sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L40">        WebRegClassHibernate webRegClassHibernate=session.get(WebRegClassHibernate.class,c.getId());</span>
+
+<span class="nc" id="L42">        return webRegClassHibernate.getProfessorHibernate();</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DepartmentHibernateDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.dao.hibernateDao</a> &gt; <span class="el_source">DepartmentHibernateDao.java</span></div><h1>DepartmentHibernateDao.java</h1><pre class="source lang-java linenums">package org.example.dao.hibernateDao;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.example.dao.AbstractHibernateDao;
+import org.example.dao.InterF.ApplicationDao;
+import org.example.dao.InterF.DepartmentDao;
+import org.example.domain.*;
+import org.example.domain.hibernate.*;
+
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Getter
+@Setter
+@Repository(&quot;DepartmentDaoHibernate&quot;)
+@Transactional
+<span class="nc" id="L25">public class DepartmentHibernateDao extends AbstractHibernateDao&lt;DepartmentHibernate&gt; implements DepartmentDao {</span>
+
+
+    @Override
+    public Department getDepartmentById(int id) {
+<span class="nc" id="L30">        DepartmentHibernate departmentHibernate=sessionFactory.getCurrentSession().get(DepartmentHibernate.class,id);</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        if(departmentHibernate!=null)System.out.print(departmentHibernate.getName());</span>
+<span class="nc" id="L32">        return  departmentHibernate;</span>
+    }
+
+    @Override
+    public Department getDepartmentByStudent(Student c) {
+
+<span class="nc" id="L38">        Session session=sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L40">        StudentHibernate studentHibernate=session.get(StudentHibernate.class,c.getId());</span>
+
+<span class="nc" id="L42">        return studentHibernate.getDepartmentHibernate();</span>
+    }
+
+    @Override
+    public Department getDepartmentByProfessor(Professor c) {
+<span class="nc" id="L47">        Session session=sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L49">        ProfessorHibernate professorHibernate=session.get(ProfessorHibernate.class,c.getId());</span>
+
+<span class="nc" id="L51">        return professorHibernate.getDepartmentHibernate();</span>
+    }
+
+    @Override
+    public Department getDepartmentByCourse(Course course) {
+<span class="nc" id="L56">        Session session=sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L58">        CourseHibernate courseHibernate=session.get(CourseHibernate.class,course.getId());</span>
+
+<span class="nc" id="L60">        return courseHibernate.getDepartmentHibernate();</span>
+
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

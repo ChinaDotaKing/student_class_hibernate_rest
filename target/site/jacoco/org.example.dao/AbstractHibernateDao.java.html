@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractHibernateDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.dao</a> &gt; <span class="el_source">AbstractHibernateDao.java</span></div><h1>AbstractHibernateDao.java</h1><pre class="source lang-java linenums">package org.example.dao;
+
+import org.example.domain.hibernate.ApplicationHibernate;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import java.util.List;
+
+public abstract class AbstractHibernateDao&lt;T&gt; {
+
+
+    @Autowired
+    protected SessionFactory sessionFactory;
+    protected Class&lt;T&gt; clazz;
+
+<span class="nc" id="L19">    public AbstractHibernateDao() {</span>
+<span class="nc" id="L20">    }</span>
+
+    protected final void setClazz(final Class&lt;T&gt; clazzToSet) {
+<span class="nc" id="L23">        this.clazz = clazzToSet;</span>
+<span class="nc" id="L24">    }</span>
+
+    public List&lt;T&gt; getAll() {
+<span class="nc" id="L27">        Session session = this.getCurrentSession();</span>
+<span class="nc" id="L28">        CriteriaBuilder builder = session.getCriteriaBuilder();</span>
+<span class="nc" id="L29">        CriteriaQuery&lt;T&gt; criteria = builder.createQuery(this.clazz);</span>
+<span class="nc" id="L30">        criteria.from(this.clazz);</span>
+<span class="nc" id="L31">        return session.createQuery(criteria).getResultList();</span>
+    }
+
+    public T findById(int id) {
+<span class="nc" id="L35">        return this.getCurrentSession().load(this.clazz, id);</span>
+    }
+
+    public void add(T item) {
+<span class="nc" id="L39">        this.getCurrentSession().save(item);</span>
+<span class="nc" id="L40">    }</span>
+
+    protected Session getCurrentSession() {
+<span class="nc" id="L43">        return this.sessionFactory.getCurrentSession();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

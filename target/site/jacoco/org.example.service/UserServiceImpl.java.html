@@ -1,0 +1,1110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.service</a> &gt; <span class="el_source">UserServiceImpl.java</span></div><h1>UserServiceImpl.java</h1><pre class="source lang-java linenums">package org.example.service;
+
+import org.example.dao.InterF.*;
+//import org.example.dao.jdbcDao.*;
+import org.example.domain.*;
+import org.example.domain.hibernate.DepartmentHibernate;
+import org.example.domain.hibernate.StudentHibernate;
+import org.example.exceptions.UserServiceException;
+import org.example.model.request.UserSignupRequestModel;
+import org.example.model.response.*;
+import org.example.model.result.ErrorMessages;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class UserServiceImpl implements UserService{
+
+//    @Autowired
+//    SessionFactory sessionFactory;
+//
+//
+//    @Autowired
+//            Session session;
+
+
+    StudentDao studentDao;
+
+
+    WebRegClassDao webRegClassDao;
+
+
+    SemesterDao semesterDao;
+
+
+    ProfessorDao professorDao;
+
+
+    ClassroomDao classroomDao;
+
+
+    CourseDao courseDao;
+
+
+    EnrollmentDao enrollmentDao;
+
+
+    DepartmentDao departmentDao;
+
+
+    LectureDao lectureDao;
+
+
+    PrerequisiteDao prerequisiteDao;
+
+
+    ApplicationDao applicationDao;
+
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
+
+
+
+@Autowired
+    public UserServiceImpl( @Qualifier(&quot;ormSwitch&quot;) boolean ormSwitch,
+
+                           // @Qualifier(&quot;ApplicationDaoJdbc&quot;) ApplicationDao applicationDaoJdbc,
+                            @Qualifier(&quot;ApplicationDaoHibernate&quot;) ApplicationDao applicationHibernateDao,
+                            //@Qualifier(&quot;StudentDaoJdbc&quot;) StudentDao studentDaoJdbc,
+                            @Qualifier(&quot;StudentDaoHibernate&quot;) StudentDao studentHibernateDao,
+
+                           // @Qualifier(&quot;ClassroomDaoJdbc&quot;) ClassroomDao classroomDaoJdbc,
+                            @Qualifier(&quot;ClassroomDaoHibernate&quot;) ClassroomDao classroomHibernateDao,
+
+                           // @Qualifier(&quot;CourseDaoJdbc&quot;) CourseDao courseDaoJdbc,
+                            @Qualifier(&quot;CourseDaoHibernate&quot;) CourseDao courseHibernateDao,
+                          //  @Qualifier(&quot;DepartmentDaoJdbc&quot;) DepartmentDao departmentDaoJdbc,
+                            @Qualifier(&quot;DepartmentDaoHibernate&quot;) DepartmentDao departmentHibernateDao,
+                           // @Qualifier(&quot;EnrollmentDaoJdbc&quot;) EnrollmentDao enrollmentDaoJdbc,
+                            @Qualifier(&quot;EnrollmentDaoHibernate&quot;) EnrollmentDao enrollmentHibernateDao,
+
+                           // @Qualifier(&quot;LectureDaoJdbc&quot;) LectureDao lectureDaoJdbc,
+                            @Qualifier(&quot;LectureDaoHibernate&quot;) LectureDao lectureHibernateDao,
+
+                           // @Qualifier(&quot;PrerequisiteDaoJdbc&quot;) PrerequisiteDao prerequisiteDaoJdbc,
+                            @Qualifier(&quot;PrerequisiteDaoHibernate&quot;) PrerequisiteDao prerequisiteHibernateDao,
+                           // @Qualifier(&quot;ProfessorDaoJdbc&quot;) ProfessorDao professorDaoJdbc,
+                            @Qualifier(&quot;ProfessorDaoHibernate&quot;) ProfessorDao professorHibernateDao,
+
+                           // @Qualifier(&quot;SemesterDaoJdbc&quot;) SemesterDao semesterDaoJdbc,
+                            @Qualifier(&quot;SemesterDaoHibernate&quot;) SemesterDao semesterHibernateDao,
+
+                          //  @Qualifier(&quot;WebRegClassDaoJdbc&quot;) WebRegClassDao webRegClassDaoJdbc,
+                            @Qualifier(&quot;WebRegClassDaoHibernate&quot;) WebRegClassDao webRegClassHibernateDao
+
+<span class="nc" id="L104">                            ) {</span>
+<span class="nc" id="L105">        this.studentDao =   studentHibernateDao;</span>
+<span class="nc" id="L106">    this.applicationDao =   applicationHibernateDao;</span>
+<span class="nc" id="L107">    this.classroomDao =   classroomHibernateDao;</span>
+<span class="nc" id="L108">    this.courseDao =   courseHibernateDao;</span>
+<span class="nc" id="L109">    this.departmentDao =   departmentHibernateDao;</span>
+<span class="nc" id="L110">    this.enrollmentDao =   enrollmentHibernateDao;</span>
+<span class="nc" id="L111">    this.lectureDao =  lectureHibernateDao;</span>
+<span class="nc" id="L112">    this.prerequisiteDao =   prerequisiteHibernateDao;</span>
+<span class="nc" id="L113">    this.professorDao =   professorHibernateDao;</span>
+<span class="nc" id="L114">    this.semesterDao =   semesterHibernateDao;</span>
+<span class="nc" id="L115">    this.webRegClassDao =   webRegClassHibernateDao;</span>
+
+    //session=sessionFactory.getCurrentSession();
+
+<span class="nc" id="L119">    }</span>
+
+    @Override
+    public boolean is_admin(String username) {
+<span class="nc" id="L123">    Student student=studentDao.getUserByName(username);</span>
+
+<span class="nc" id="L125">        return student.is_admin();</span>
+    }
+
+    @Override
+    public void createNewStudent(StudentHibernate student) {
+<span class="nc" id="L130">            studentDao.createNewStudent(student);</span>
+
+<span class="nc" id="L132">    }</span>
+
+    @Override
+    public void createNewStudentForRest(UserSignupRequestModel userDetails) {
+<span class="nc" id="L136">        Department departmentHibernate=getDepartmentById(userDetails.getDepartment_id());</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        if(departmentHibernate==null) throw new UserServiceException(&quot;department not found&quot;);</span>
+
+<span class="nc" id="L139">        Student student=getUserByname(userDetails.getUsername());</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if(student!=null) throw new UserServiceException(&quot;Username found in the database.&quot;);</span>
+
+<span class="nc" id="L142">        StudentHibernate studentHibernate=new StudentHibernate(</span>
+<span class="nc" id="L143">                userDetails.getUsername(),</span>
+<span class="nc" id="L144">                bCryptPasswordEncoder.encode(userDetails.getPassword()),</span>
+<span class="nc" id="L145">                userDetails.getEmail(),</span>
+<span class="nc" id="L146">                userDetails.getFirstname(),</span>
+<span class="nc" id="L147">                userDetails.getLastname(),</span>
+                (DepartmentHibernate) departmentHibernate
+        );
+<span class="nc" id="L150">        studentHibernate.setDept_id(userDetails.getDepartment_id());</span>
+
+<span class="nc" id="L152">        createNewStudent(studentHibernate);</span>
+
+<span class="nc" id="L154">    }</span>
+
+    @Override
+    public UserSignupResponseModel getUserSignupResponseModel(UserSignupRequestModel userDetails) {
+
+<span class="nc" id="L159">        UserSignupResponseModel userSignupResponseModel=new UserSignupResponseModel();</span>
+
+<span class="nc" id="L161">        userSignupResponseModel.setUsername(userDetails.getUsername());</span>
+<span class="nc" id="L162">        userSignupResponseModel.setEmail(userDetails.getEmail());</span>
+<span class="nc" id="L163">        userSignupResponseModel.setLastname(userDetails.getLastname());</span>
+<span class="nc" id="L164">        userSignupResponseModel.setFirstname(userDetails.getFirstname());</span>
+<span class="nc" id="L165">        Department departmentHibernate=departmentDao.getDepartmentById(userDetails.getDepartment_id());</span>
+<span class="nc" id="L166">        userSignupResponseModel.setDepartment_name(departmentHibernate.getName());</span>
+<span class="nc" id="L167">        userSignupResponseModel.setSchool(departmentHibernate.getSchool());</span>
+<span class="nc" id="L168">        return userSignupResponseModel;</span>
+    }
+
+    @Override
+    public Student getUserByname(String user) {
+<span class="nc" id="L173">        return studentDao.getUserByName(user);</span>
+    }
+
+    @Override
+    public List&lt;ClassRespEntity&gt; getClassRespEntitiesFromEnrollments(List&lt;Enrollment&gt; enrollments) {
+
+<span class="nc" id="L179">        List&lt;WebRegClass&gt; classes= null;</span>
+
+
+<span class="nc" id="L182">        List&lt;Course&gt; courses=null;</span>
+<span class="nc" id="L183">        List&lt;Professor&gt; professors=null;</span>
+<span class="nc" id="L184">        List&lt;Semester&gt; semesters=null;</span>
+<span class="nc" id="L185">        List&lt;Department&gt; departments=null;</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        if(!(enrollments ==null))</span>
+        {
+<span class="nc" id="L188">            classes= enrollments.stream().map(c-&gt;getClassByEnrollment(c)).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">            classes=classes.stream().sorted((a,b)-&gt;getSemesterByClass(a).getStart_date().before(getSemesterByClass(b).getStart_date())?1:-1).collect(Collectors.toList());</span>
+
+<span class="nc" id="L191">            courses=classes.stream().map(c-&gt;getCourseByClass(c)).collect(Collectors.toList());</span>
+
+<span class="nc" id="L193">            professors=classes.stream().map(c-&gt;getProfessorByClass(c)).collect(Collectors.toList());</span>
+
+<span class="nc" id="L195">            semesters=classes.stream().map(c-&gt;getSemesterByClass(c)).collect(Collectors.toList());</span>
+
+<span class="nc" id="L197">            departments=professors.stream().map(c-&gt;getDepartmentByProfessor(c)).collect(Collectors.toList());</span>
+
+        }
+
+<span class="nc" id="L201">        List&lt;ClassRespEntity&gt; classRespEntities=new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        for(int i=0;i&lt;enrollments.size();i++){</span>
+<span class="nc" id="L204">            ClassRespEntity classRespEntity=new ClassRespEntity();</span>
+
+<span class="nc" id="L206">            classRespEntity.setStatus(enrollments.get(i).getStatus());</span>
+<span class="nc" id="L207">            classRespEntity.setSchool_name(departments.get(i).getSchool());</span>
+<span class="nc" id="L208">            classRespEntity.setSemester_name(semesters.get(i).getName());</span>
+<span class="nc" id="L209">            classRespEntity.setDepartment_name(departments.get(i).getName());</span>
+<span class="nc" id="L210">            classRespEntity.setCourse_name(courses.get(i).getCourse_name());</span>
+<span class="nc" id="L211">            classRespEntity.setCourse_code(courses.get(i).getCourse_code());</span>
+<span class="nc" id="L212">            classRespEntities.add(classRespEntity);</span>
+        }
+
+
+
+
+
+<span class="nc" id="L219">        return classRespEntities;</span>
+    }
+
+    @Override
+    public ClassDetailRespModel getClassDetailByClass(WebRegClass theWebRegClass) {
+
+<span class="nc" id="L225">        Course course = getCourseByClass(theWebRegClass);</span>
+<span class="nc" id="L226">        List&lt;Enrollment&gt; enrollments = getActiveEnrollmentsByClassId(theWebRegClass.getId());</span>
+<span class="nc" id="L227">        Department department = getDepartmentByCourse(course);</span>
+
+<span class="nc" id="L229">        Lecture lecture = getLectureByClass(theWebRegClass);</span>
+
+<span class="nc" id="L231">        Professor professor = getProfessorByClass(theWebRegClass);</span>
+<span class="nc" id="L232">        Department pro_dept = getDepartmentByProfessor(professor);</span>
+
+<span class="nc" id="L234">        Classroom classroom = getClassroomByClass(theWebRegClass);</span>
+<span class="nc" id="L235">        List&lt;Prerequisite&gt; prerequisites = getPrerequisiteByCourse(course);</span>
+<span class="nc" id="L236">        List&lt;Enrollment&gt; enrollments1=getActiveEnrollmentsByClassId(theWebRegClass.getId());</span>
+
+<span class="nc" id="L238">        List&lt;Student&gt; students=null;</span>
+<span class="nc" id="L239">        List&lt;Department&gt; departments=null;</span>
+<span class="nc" id="L240">        Semester semester=getSemesterByClass(theWebRegClass);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        if(enrollments1!=null){</span>
+<span class="nc" id="L242">            students=enrollments1.stream().map(c-&gt;getStudentByEnrollment(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L243">            departments=students.stream().map(c-&gt;getDepartmentByStudent(c)).collect(Collectors.toList());</span>
+
+        }
+
+<span class="nc" id="L247">        ClassDetailRespModel classDetailRespModel=new ClassDetailRespModel();</span>
+
+<span class="nc" id="L249">        classDetailRespModel.setCourse(getCourseRespByCourse(course));</span>
+<span class="nc" id="L250">        classDetailRespModel.getCourse().setCapacity(theWebRegClass.getCapacity());</span>
+<span class="nc" id="L251">        classDetailRespModel.getCourse().setEnrollment_num(enrollments.size());</span>
+<span class="nc" id="L252">        classDetailRespModel.getCourse().set_Active(theWebRegClass.is_active());</span>
+
+<span class="nc" id="L254">        ModelMapper modelMapper=new ModelMapper();</span>
+
+<span class="nc" id="L256">        classDetailRespModel.setSemester(modelMapper.map(semester, SemesterRespModel.class));</span>
+<span class="nc" id="L257">        classDetailRespModel.setClassroom(modelMapper.map(classroom, ClassroomRespModel.class));</span>
+<span class="nc" id="L258">        classDetailRespModel.setLecture(modelMapper.map(lecture,LectureRespModel.class));</span>
+
+<span class="nc" id="L260">        classDetailRespModel.setProfessor(getProfessorRespByprofessor(professor));</span>
+
+
+<span class="nc" id="L263">        List&lt;PrereqRespModel&gt; prereqRespModels=new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        for(Prerequisite prereq: prerequisites){</span>
+<span class="nc" id="L265">            String prereq_name=getCourseNameById(prereq.getPre_req_id());</span>
+<span class="nc" id="L266">           prereqRespModels.add(new PrereqRespModel(prereq_name));</span>
+<span class="nc" id="L267">        }</span>
+<span class="nc" id="L268">        classDetailRespModel.setPrereqs(prereqRespModels);</span>
+
+<span class="nc" id="L270">        List&lt;CurEnrolledStudentRespModel&gt; curEnrolledStudentRespModels=new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">        for(int i=0;i&lt;students.size();i++){</span>
+<span class="nc" id="L272">            CurEnrolledStudentRespModel curEnrolledStudentRespModel=new CurEnrolledStudentRespModel();</span>
+
+<span class="nc" id="L274">            curEnrolledStudentRespModel.setFull_name(students.get(i).getFirstName()+&quot; &quot;+students.get(i).getLastName());</span>
+<span class="nc" id="L275">            curEnrolledStudentRespModel.setSchool(departments.get(i).getSchool());</span>
+<span class="nc" id="L276">            curEnrolledStudentRespModel.setEmail(students.get(i).getEmail());</span>
+<span class="nc" id="L277">            curEnrolledStudentRespModel.setDepartment_name(departments.get(i).getName());</span>
+
+<span class="nc" id="L279">            curEnrolledStudentRespModels.add(curEnrolledStudentRespModel);</span>
+
+        }
+<span class="nc" id="L282">        classDetailRespModel.setCurEnrolledStudents(curEnrolledStudentRespModels);</span>
+
+
+<span class="nc" id="L285">        return classDetailRespModel;</span>
+    }
+
+    @Override
+    public List&lt;StudentClassManaResp&gt; getStudentClassManaResp(int id) {
+<span class="nc" id="L290">        List&lt;WebRegClass&gt; classes = getAllActiveClasses();</span>
+<span class="nc" id="L291">        List&lt;Course&gt; courses =null;</span>
+<span class="nc" id="L292">        List&lt;Professor&gt; professors =null;</span>
+<span class="nc" id="L293">        List&lt;Semester&gt; semesters=null;</span>
+<span class="nc" id="L294">        List&lt;Department&gt; departments =null;</span>
+
+<span class="nc" id="L296">        List&lt;Integer&gt; en_num = null;</span>
+<span class="nc" id="L297">        List&lt;String&gt; en_status = null;</span>
+
+<span class="nc bnc" id="L299" title="All 2 branches missed.">        if(classes!=null) {</span>
+<span class="nc" id="L300">            courses = classes.stream().map(c -&gt; getCourseByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L301">            professors = classes.stream().map(c -&gt; getProfessorByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L302">            semesters = classes.stream().map(c -&gt; getSemesterByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L303">            departments = professors.stream().map(c -&gt; getDepartmentByProfessor(c)).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">            en_num = classes.stream().map(c -&gt; getActiveEnrollmentsByClass(c) == null ? 0 : getActiveEnrollmentsByClassId(c.getId()).size()).collect(Collectors.toList());</span>
+
+<span class="nc bnc" id="L306" title="All 2 branches missed.">            en_status = classes.stream().map(c -&gt; getEnrollmentStatus(id, c.getId()) ? &quot;YES&quot; : &quot;NO&quot;).collect(Collectors.toList());</span>
+
+        }
+
+<span class="nc" id="L310">        List&lt;StudentClassManaResp&gt; studentClassManaResps=new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        for(int i=0;i&lt; classes.size();i++){</span>
+<span class="nc" id="L312">            StudentClassManaResp studentClassManaResp=new StudentClassManaResp();</span>
+
+<span class="nc" id="L314">            studentClassManaResp.setCapacity(classes.get(i).getCapacity());</span>
+<span class="nc" id="L315">            studentClassManaResp.setCourse_code(courses.get(i).getCourse_code());</span>
+<span class="nc" id="L316">            studentClassManaResp.setCourse_name(courses.get(i).getCourse_name());</span>
+<span class="nc" id="L317">            studentClassManaResp.setDepartment_name(departments.get(i).getName());</span>
+<span class="nc" id="L318">            studentClassManaResp.setSchool_name(departments.get(i).getSchool());</span>
+<span class="nc" id="L319">            studentClassManaResp.setSemester_name(semesters.get(i).getName());</span>
+<span class="nc" id="L320">            studentClassManaResp.setCurEnrollmentNumber(en_num.get(i));</span>
+<span class="nc" id="L321">            studentClassManaResp.setStatus(classes.get(i).is_active());</span>
+
+<span class="nc" id="L323">            studentClassManaResp.setIsEnrolled(en_status.get(i));</span>
+<span class="nc" id="L324">            studentClassManaResps.add(studentClassManaResp);</span>
+
+        }
+
+<span class="nc" id="L328">        return studentClassManaResps;</span>
+
+
+    }
+
+    @Override
+    public List&lt;ApplicationResp&gt; getApplicationRespByStudentId(int id) {
+<span class="nc" id="L335">        List&lt;Application&gt; applications= getApplicationsByStudentId(id);</span>
+<span class="nc" id="L336">        List&lt;Course&gt; courses=null;</span>
+<span class="nc" id="L337">        List&lt;Professor&gt; professors=null;</span>
+<span class="nc" id="L338">        List&lt;Semester&gt; semesters=null;</span>
+<span class="nc" id="L339">        List&lt;Department&gt; departments=null;</span>
+<span class="nc" id="L340">        List&lt;WebRegClass&gt; classes=null;</span>
+<span class="nc" id="L341">        List&lt;Student&gt; students=null;</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">        if(!(applications ==null))</span>
+        {
+<span class="nc" id="L344">            classes=applications.stream().map(c-&gt;getWebRegClassByApplication(c)).collect(Collectors.toList());</span>
+
+<span class="nc" id="L346">            students=applications.stream().map(c-&gt;getStudentByApplication(c)).collect(Collectors.toList());</span>
+
+<span class="nc" id="L348">            courses=classes.stream().map(c-&gt;getCourseByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L349">            semesters=classes.stream().map(c-&gt;getSemesterByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L350">            professors=classes.stream().map(c-&gt;getProfessorByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L351">            departments=professors.stream().map(c-&gt;getDepartmentByProfessor(c)).collect(Collectors.toList());</span>
+        }
+
+<span class="nc" id="L354">        List&lt;ApplicationResp&gt; applicationResps=new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L356" title="All 2 branches missed.">        for(int i=0;i&lt;applications.size();i++){</span>
+<span class="nc" id="L357">            ApplicationResp applicationResp=new ApplicationResp();</span>
+
+<span class="nc" id="L359">            applicationResp.setCourse_code(courses.get(i).getCourse_code());</span>
+<span class="nc" id="L360">            applicationResp.setCourse_name(courses.get(i).getCourse_name());</span>
+<span class="nc" id="L361">            applicationResp.setSemester_name(semesters.get(i).getName());</span>
+<span class="nc" id="L362">            applicationResp.setCreationTime(applications.get(i).getCreationTime());</span>
+<span class="nc" id="L363">            applicationResp.setRequest(applications.get(i).getRequest());</span>
+<span class="nc" id="L364">            applicationResp.setFeedback(applications.get(i).getFeedback());</span>
+<span class="nc" id="L365">            applicationResp.setStatus(applications.get(i).getStatus());</span>
+
+<span class="nc" id="L367">            applicationResps.add(applicationResp);</span>
+
+        }
+
+<span class="nc" id="L371">        return applicationResps;</span>
+    }
+
+    @Override
+    public List&lt;AdminStuResp&gt; getAdminStuResps() {
+
+<span class="nc" id="L377">    List&lt;Student&gt; students = getAllStudents();</span>
+<span class="nc" id="L378">    List&lt;Department&gt; departments=students.stream().map(c-&gt;getDepartmentByStudent(c)).collect(Collectors.toList());</span>
+
+<span class="nc" id="L380">    List&lt;AdminStuResp&gt; adminStuResps=new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L382" title="All 2 branches missed.">    for(int i=0;i&lt;students.size();i++){</span>
+<span class="nc" id="L383">        AdminStuResp adminStuResp=new AdminStuResp();</span>
+<span class="nc" id="L384">        System.out.print(students.get(i).getFirstName());</span>
+<span class="nc" id="L385">        adminStuResp.set_Active(students.get(i).is_active());</span>
+<span class="nc" id="L386">        adminStuResp.setSchool(departments.get(i).getSchool());</span>
+<span class="nc" id="L387">        adminStuResp.setDepartment_name(departments.get(i).getName());</span>
+<span class="nc" id="L388">        adminStuResp.setFull_name(students.get(i).getFirstName()+&quot; &quot;+students.get(i).getLastName());</span>
+<span class="nc" id="L389">        adminStuResp.setEmail(students.get(i).getEmail());</span>
+<span class="nc" id="L390">        adminStuResps.add(adminStuResp);</span>
+    }
+
+<span class="nc" id="L393">        return adminStuResps;</span>
+    }
+
+    @Override
+    public StudentDetailResp getStudentDetailResp(int studentId) {
+
+<span class="nc" id="L399">        Student theStudent=getStudentById(studentId);</span>
+<span class="nc" id="L400">        Department department=getDepartmentByStudent(theStudent);</span>
+<span class="nc" id="L401">        List&lt;WebRegClass&gt; classes=getAllStatusClassesbyStudentId(studentId);</span>
+<span class="nc" id="L402">        List&lt;Course&gt; courses=null;</span>
+<span class="nc" id="L403">        List&lt;Professor&gt; professors=null;</span>
+<span class="nc" id="L404">        List&lt;Semester&gt; semesters=null;</span>
+<span class="nc" id="L405">        List&lt;Department&gt; departments=null;</span>
+<span class="nc" id="L406">        List&lt;String&gt; en_status=null;</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">        if(!(classes ==null)) {</span>
+<span class="nc" id="L408">            courses = classes.stream().map(c -&gt; getCourseByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L409">            professors = classes.stream().map(c -&gt; getProfessorByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L410">            semesters = classes.stream().map(c -&gt; getSemesterByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L411">            departments = professors.stream().map(c -&gt; getDepartmentByProfessor(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L412">            en_status = classes.stream().map(c -&gt; getClassStatus(theStudent.getId(), c.getId())).collect(Collectors.toList());</span>
+        }
+
+<span class="nc" id="L415">        StudentDetailResp studentDetailResp=new StudentDetailResp();</span>
+<span class="nc" id="L416">        StudentInfoResp studentInfoResp=new StudentInfoResp();</span>
+
+<span class="nc" id="L418">        studentInfoResp.setSchool(department.getSchool());</span>
+<span class="nc" id="L419">        studentInfoResp.setFull_name(theStudent.getFirstName()+&quot; &quot;+theStudent.getLastName());</span>
+<span class="nc" id="L420">        studentInfoResp.setEmail(theStudent.getEmail());</span>
+<span class="nc" id="L421">        studentInfoResp.setDepartment_name(department.getName());</span>
+
+
+<span class="nc" id="L424">        List&lt;ClassRespEntity &gt; classRespEntities=new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L426" title="All 2 branches missed.">        for(int i=0;i&lt;en_status.size();i++){</span>
+<span class="nc" id="L427">            ClassRespEntity classRespEntity=new ClassRespEntity();</span>
+
+<span class="nc" id="L429">            classRespEntity.setStatus(en_status.get(i));</span>
+<span class="nc" id="L430">            classRespEntity.setSchool_name(departments.get(i).getSchool());</span>
+<span class="nc" id="L431">            classRespEntity.setSemester_name(semesters.get(i).getName());</span>
+<span class="nc" id="L432">            classRespEntity.setDepartment_name(departments.get(i).getName());</span>
+<span class="nc" id="L433">            classRespEntity.setCourse_name(courses.get(i).getCourse_name());</span>
+<span class="nc" id="L434">            classRespEntity.setCourse_code(courses.get(i).getCourse_code());</span>
+<span class="nc" id="L435">            classRespEntities.add(classRespEntity);</span>
+        }
+<span class="nc" id="L437">        studentDetailResp.setStudentInfoResp(studentInfoResp);</span>
+<span class="nc" id="L438">        studentDetailResp.setClassRespEntities(classRespEntities);</span>
+
+<span class="nc" id="L440">        return studentDetailResp;</span>
+    }
+
+    @Override
+    public List&lt;AdminCourseResp&gt; getAdminCourseResps() {
+
+<span class="nc" id="L446">        List&lt;Course&gt; courses=getAllCourses();</span>
+<span class="nc" id="L447">        List&lt;Department&gt; departments=courses.stream().map(c-&gt;getDepartmentByCourse(c)).collect(Collectors.toList());</span>
+
+
+<span class="nc" id="L450">        List&lt;AdminCourseResp&gt; adminCourseResps=new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L452" title="All 2 branches missed.">        for(int i=0;i&lt;courses.size();i++){</span>
+<span class="nc" id="L453">            AdminCourseResp adminCourseResp=new AdminCourseResp();</span>
+<span class="nc" id="L454">            adminCourseResp.setCourse_description(courses.get(i).getDescription());</span>
+<span class="nc" id="L455">            adminCourseResp.setCourse_name(courses.get(i).getCourse_name());</span>
+<span class="nc" id="L456">            adminCourseResp.setCourse_code(courses.get(i).getCourse_code());</span>
+<span class="nc" id="L457">            adminCourseResp.setDepartment_name(departments.get(i).getName());</span>
+<span class="nc" id="L458">            adminCourseResp.setSchool_name(departments.get(i).getSchool());</span>
+
+<span class="nc" id="L460">            adminCourseResps.add(adminCourseResp);</span>
+        }
+<span class="nc" id="L462">        return adminCourseResps;</span>
+    }
+
+    @Override
+    public AdminCourseResp getAdminCourseRespById(int id) {
+<span class="nc" id="L467">            Course course=getCourseById(id);</span>
+<span class="nc" id="L468">            AdminCourseResp adminCourseResp=new AdminCourseResp();</span>
+<span class="nc" id="L469">            Department department=getDepartmentByCourse(course);</span>
+
+<span class="nc" id="L471">            adminCourseResp.setCourse_name(course.getCourse_name());</span>
+<span class="nc" id="L472">            adminCourseResp.setCourse_code(course.getCourse_code());</span>
+<span class="nc" id="L473">            adminCourseResp.setCourse_description(course.getDescription());</span>
+<span class="nc" id="L474">            adminCourseResp.setSchool_name(department.getSchool());</span>
+<span class="nc" id="L475">            adminCourseResp.setDepartment_name(department.getName());</span>
+<span class="nc" id="L476">        return adminCourseResp;</span>
+    }
+
+    @Override
+    public List&lt;AdminClassManaResp&gt; getAdminClassManaResp() {
+
+<span class="nc" id="L482">        List&lt;WebRegClass&gt; classes = getAllClasses();</span>
+
+<span class="nc" id="L484">            List&lt;Course&gt; courses = classes.stream().map(c -&gt; getCourseByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L485">            List&lt;Professor&gt; professors = classes.stream().map(c -&gt; getProfessorByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L486">            List&lt;Semester&gt; semesters = classes.stream().map(c -&gt; getSemesterByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L487">            List&lt;Department&gt; departments = professors.stream().map(c -&gt; getDepartmentByProfessor(c)).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L488" title="All 2 branches missed.">            List&lt;Integer&gt; en_num = classes.stream().map(c -&gt; getActiveEnrollmentsByClass(c) == null ? 0 : getActiveEnrollmentsByClassId(c.getId()).size()).collect(Collectors.toList());</span>
+            //List&lt;Enrollment&gt; enrollments = classes.stream().map(c -&gt; userService.getEnrollmentByClassStudentId(c,student.getId())).collect(Collectors.toList());
+
+<span class="nc" id="L491">        List&lt;AdminClassManaResp&gt; adminClassManaResps=new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L493" title="All 2 branches missed.">        for(int i=0;i&lt;classes.size();i++){</span>
+<span class="nc" id="L494">            AdminClassManaResp adminClassManaResp=new AdminClassManaResp();</span>
+<span class="nc" id="L495">            adminClassManaResp.setCourse_name(courses.get(i).getCourse_name());</span>
+<span class="nc" id="L496">            adminClassManaResp.setCourse_code(courses.get(i).getCourse_code());</span>
+<span class="nc" id="L497">            adminClassManaResp.setDepartment_name(departments.get(i).getName());</span>
+<span class="nc" id="L498">            adminClassManaResp.setSchool_name(departments.get(i).getSchool());</span>
+<span class="nc" id="L499">            adminClassManaResp.setSemester_name(semesters.get(i).getName());</span>
+<span class="nc" id="L500">            adminClassManaResp.setCurEnrollmentNumber(en_num.get(i));</span>
+<span class="nc" id="L501">            adminClassManaResp.setCapacity(classes.get(i).getCapacity());</span>
+<span class="nc" id="L502">            adminClassManaResp.setStatus(classes.get(i).is_active());</span>
+<span class="nc" id="L503">            adminClassManaResps.add(adminClassManaResp);</span>
+        }
+<span class="nc" id="L505">        return adminClassManaResps;</span>
+
+
+
+
+
+    }
+
+    @Override
+    public List&lt;AdminApplicationResp&gt; getAdminApplicationResps() {
+
+<span class="nc" id="L516">        List&lt;AdminApplicationResp&gt; applicationResps=new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L517">        List&lt;Application&gt; applications= getAllPendingApplications();</span>
+
+<span class="nc" id="L519">        List&lt;Course&gt; courses=null;</span>
+<span class="nc" id="L520">        List&lt;Professor&gt; professors=null;</span>
+<span class="nc" id="L521">        List&lt;Semester&gt; semesters=null;</span>
+<span class="nc" id="L522">        List&lt;Department&gt; departments=null;</span>
+<span class="nc" id="L523">        List&lt;WebRegClass&gt; classes=null;</span>
+
+<span class="nc" id="L525">        List&lt;Student&gt; students=null;</span>
+
+<span class="nc bnc" id="L527" title="All 2 branches missed.">        if(!(applications ==null))</span>
+        {
+<span class="nc" id="L529">            classes=applications.stream().map(c-&gt;getWebRegClassByApplication(c)).collect(Collectors.toList());</span>
+
+<span class="nc" id="L531">            students=applications.stream().map(c-&gt;getStudentByApplication(c)).collect(Collectors.toList());</span>
+
+<span class="nc" id="L533">            courses=classes.stream().map(c-&gt;getCourseByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L534">            semesters=classes.stream().map(c-&gt;getSemesterByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L535">            professors=classes.stream().map(c-&gt;getProfessorByClass(c)).collect(Collectors.toList());</span>
+<span class="nc" id="L536">            departments=professors.stream().map(c-&gt;getDepartmentByProfessor(c)).collect(Collectors.toList());</span>
+        }
+
+<span class="nc bnc" id="L539" title="All 2 branches missed.">        for(int i=0;i&lt;applications.size();i++){</span>
+<span class="nc" id="L540">            AdminApplicationResp applicationResp=new AdminApplicationResp();</span>
+
+<span class="nc" id="L542">            applicationResp.setEmail(students.get(i).getEmail());</span>
+<span class="nc" id="L543">            applicationResp.setStudent_name(students.get(i).getFirstName()+&quot; &quot;+students.get(i).getLastName());</span>
+<span class="nc" id="L544">            applicationResp.setCourse_code(courses.get(i).getCourse_code());</span>
+<span class="nc" id="L545">            applicationResp.setCourse_name(courses.get(i).getCourse_name());</span>
+<span class="nc" id="L546">            applicationResp.setCreationTime(applications.get(i).getCreationTime());</span>
+<span class="nc" id="L547">            applicationResp.setStatus(applications.get(i).getStatus());</span>
+<span class="nc" id="L548">            applicationResp.setRequest(applications.get(i).getRequest());</span>
+<span class="nc" id="L549">            applicationResp.setSemester_name(semesters.get(i).getName());</span>
+<span class="nc" id="L550">            applicationResps.add(applicationResp);</span>
+
+        }
+
+
+<span class="nc" id="L555">        return applicationResps;</span>
+    }
+
+    @Override
+    public AdminApplicationResp getAdminApplicationRespByApplicationId(int applicationId) {
+
+<span class="nc" id="L561">    Application application=getApplicationById(applicationId);</span>
+
+<span class="nc" id="L563">    AdminApplicationResp adminApplicationResp=new AdminApplicationResp();</span>
+
+<span class="nc" id="L565">    Student student=getStudentByApplication(application);</span>
+<span class="nc" id="L566">    WebRegClass webRegClass=getWebRegClassByApplication(application);</span>
+<span class="nc" id="L567">    Semester semester=getSemesterByClass(webRegClass);</span>
+<span class="nc" id="L568">    Course course=getCourseByClass(webRegClass);</span>
+
+<span class="nc" id="L570">    adminApplicationResp.setSemester_name(semester.getName());</span>
+<span class="nc" id="L571">    adminApplicationResp.setStudent_name(student.getFirstName()+&quot; &quot;+student.getLastName());</span>
+<span class="nc" id="L572">    adminApplicationResp.setCreationTime(application.getCreationTime());</span>
+<span class="nc" id="L573">    adminApplicationResp.setEmail(student.getEmail());</span>
+<span class="nc" id="L574">    adminApplicationResp.setCourse_name(course.getCourse_name());</span>
+<span class="nc" id="L575">    adminApplicationResp.setCourse_code(course.getCourse_code());</span>
+<span class="nc" id="L576">    adminApplicationResp.setStatus(application.getStatus());</span>
+<span class="nc" id="L577">    adminApplicationResp.setRequest(application.getRequest());</span>
+<span class="nc" id="L578">        return adminApplicationResp;</span>
+    }
+
+    private ProfessorRespModel getProfessorRespByprofessor(Professor professor) {
+
+
+<span class="nc" id="L584">        ProfessorRespModel professorRespModel=new ProfessorRespModel();</span>
+<span class="nc" id="L585">        professorRespModel.setEmail(professor.getEmail());</span>
+<span class="nc" id="L586">        professorRespModel.setFull_name(professor.getFirstName()+&quot; &quot;+professor.getLastName());</span>
+<span class="nc" id="L587">        Department departmentHibernate=getDepartmentByProfessor(professor);</span>
+
+<span class="nc" id="L589">        professorRespModel.setSchool_name(departmentHibernate.getSchool());</span>
+<span class="nc" id="L590">        professorRespModel.setDepartment_name(departmentHibernate.getName());</span>
+<span class="nc" id="L591">        return professorRespModel;</span>
+
+    }
+
+    private CourseRespModel getCourseRespByCourse(Course course) {
+
+<span class="nc" id="L597">    CourseRespModel courseRespModel=new CourseRespModel();</span>
+
+<span class="nc" id="L599">    Department departmentHibernate=getDepartmentByCourse(course);</span>
+
+<span class="nc" id="L601">    courseRespModel.setCourse_name(course.getCourse_name());</span>
+<span class="nc" id="L602">    courseRespModel.setCourse_code(course.getCourse_code());</span>
+<span class="nc" id="L603">    courseRespModel.setCourse_description(course.getDescription());</span>
+<span class="nc" id="L604">    courseRespModel.setDepartment_name(departmentHibernate.getName());</span>
+<span class="nc" id="L605">    courseRespModel.setSchool_name(departmentHibernate.getSchool());</span>
+
+
+<span class="nc" id="L608">    return courseRespModel;</span>
+
+    }
+
+
+//    @Override
+//    public List&lt;WebRegClass&gt; getClassesbyCourseId(int id) {
+//        return webRegClassDao.getWebRegClassesByCourseId(id);
+//    }
+
+    @Override
+    public List&lt;WebRegClass&gt; getClassesbyStudentId(int id) {
+
+<span class="nc" id="L621">        return webRegClassDao.getWebRegClassesByStudentId(id);</span>
+    }
+
+
+
+    public Course getCourseById(int id) {
+
+<span class="nc" id="L628">        return courseDao.getCourseById(id);</span>
+    }
+
+
+
+
+
+    @Override
+    public Department getDepartmentById(int id) {
+<span class="nc" id="L637">        return departmentDao.getDepartmentById(id);</span>
+    }
+
+    @Override
+    public WebRegClass getWebRegClassById(int id) {
+<span class="nc" id="L642">        return webRegClassDao.getWebRegClassById(id);</span>
+    }
+
+    @Override
+    public List&lt;Enrollment&gt; getActiveEnrollmentsByClassId(int id) {
+<span class="nc" id="L647">        return enrollmentDao.getActiveEnrollmentsByClassId(id);</span>
+    }
+
+
+
+    @Override
+    public Lecture getLectureByClass(WebRegClass theClass) {
+<span class="nc" id="L654">        return lectureDao.getLectureByClass(theClass);</span>
+    }
+
+//    @Override
+//    public Classroom getClassroomById(int id) {
+//        return classroomDao.getClassroomById(id);
+//    }
+
+
+
+    @Override
+    public List&lt;WebRegClass&gt; getAllActiveClasses() {
+<span class="nc" id="L666">        return webRegClassDao.getAllActiveClasses();</span>
+    }
+
+    @Override
+    public boolean getEnrollmentStatus(int studentId, int classId) {
+<span class="nc" id="L671">        return enrollmentDao.getEnrollmentStatus(studentId,classId);</span>
+    }
+
+    @Override
+    public String getClassStatus(int studentId, int classId) {
+<span class="nc" id="L676">        return enrollmentDao.getStatus(studentId,classId);</span>
+    }
+
+    @Override
+    public Student getStudentById(int studentId) {
+<span class="nc" id="L681">        return studentDao.getStudentById(studentId);</span>
+    }
+
+    @Override
+    public boolean checkIfStudentEligible(Student student,WebRegClass theClass) {
+<span class="nc" id="L686">    String ex=&quot;&quot;;</span>
+<span class="nc bnc" id="L687" title="All 2 branches missed.">        if(!student.is_active()) {</span>
+
+<span class="nc" id="L689">                ex+=ErrorMessages.STUDENT_NOT_ACTIVE.getErrorMessage()+&quot;\\n&quot;;</span>
+
+
+        }
+<span class="nc bnc" id="L693" title="All 2 branches missed.">        if(!theClass.is_active()){</span>
+<span class="nc" id="L694">            ex+=ErrorMessages.CLASS_NOT_ACTIVE.getErrorMessage()+&quot;\\n&quot;;</span>
+
+
+        }
+<span class="nc" id="L698">        List&lt;Prerequisite&gt; prerequisites=getPrerequisitesByClass(theClass);</span>
+
+<span class="nc bnc" id="L700" title="All 2 branches missed.">        if (!(prerequisites==null))</span>
+<span class="nc bnc" id="L701" title="All 2 branches missed.">        for(Prerequisite prerequisite:prerequisites){</span>
+<span class="nc bnc" id="L702" title="All 2 branches missed.">            if(!checkIfStudentPassCourseById(student,prerequisite)) {</span>
+<span class="nc" id="L703">                ex+=ErrorMessages.PASS_THE_PREREQUISITE.getErrorMessage()+prerequisite.getPre_req_id()+&quot;\\n&quot;;</span>
+
+            }
+<span class="nc" id="L706">        }</span>
+
+<span class="nc bnc" id="L708" title="All 2 branches missed.">        if(checkIfWithdrawn(student.getId(),theClass.getId())) {</span>
+
+<span class="nc" id="L710">            ex+=ErrorMessages.WITHDRAWN.getErrorMessage()+&quot;\\n&quot;;</span>
+        }
+
+<span class="nc" id="L713">        Course course=getCourseByClass(theClass);</span>
+<span class="nc bnc" id="L714" title="All 2 branches missed.">        if(checkIfStudentPassCourseById(student,course.getId())) {</span>
+<span class="nc" id="L715">            ex+=ErrorMessages.PASSED.getErrorMessage()+&quot;\\n&quot;;</span>
+        }
+
+<span class="nc bnc" id="L718" title="All 2 branches missed.">        if(checkTimeConflict(student,theClass)) {</span>
+<span class="nc" id="L719">            ex+=ErrorMessages.Time_CONFLICT.getErrorMessage()+&quot;\\n&quot;;</span>
+        }
+
+<span class="nc bnc" id="L722" title="All 2 branches missed.">        if(ex.length()==0) return true;</span>
+<span class="nc" id="L723">        else throw new UserServiceException(ex);</span>
+    }
+
+    @Override
+    public boolean checkIfStudentPassCourseById(Student student, int courseId) {
+<span class="nc" id="L728">        List&lt;Enrollment&gt; Enrollments= enrollmentDao.getClassesByStudentId(student.getId());</span>
+<span class="nc bnc" id="L729" title="All 2 branches missed.">        if(Enrollments==null) return false;</span>
+
+
+<span class="nc bnc" id="L732" title="All 4 branches missed.">        for(Enrollment enrollment: Enrollments) if(enrollment.getStatus().equals(&quot;pass&quot;)</span>
+<span class="nc bnc" id="L733" title="All 2 branches missed.">                &amp;&amp;getCourseByClass(webRegClassDao.getClassByEnrollment(enrollment)).getId()==courseId)return true;</span>
+
+<span class="nc" id="L735">        return false;</span>
+    }
+
+    private List&lt;Prerequisite&gt; getPrerequisitesByClass(WebRegClass theClass) {
+
+<span class="nc" id="L740">    Course course=getCourseByClass(theClass);</span>
+<span class="nc" id="L741">    List&lt;Prerequisite&gt; prerequisites=prerequisiteDao.getPrerequisiteByCourse(course);</span>
+<span class="nc" id="L742">    return prerequisites;</span>
+    }
+
+    @Override
+    public boolean checkIfStudentPassCourseById(Student student, Prerequisite prerequisite) {
+<span class="nc" id="L747">        List&lt;Enrollment&gt; Enrollments= enrollmentDao.getClassesByStudentId(student.getId());</span>
+       // System.out.print(Enrollments.size());
+<span class="nc bnc" id="L749" title="All 2 branches missed.">        if(Enrollments==null) return false;</span>
+<span class="nc" id="L750">        int courseId=prerequisiteDao.getPrereqByPre(prerequisite);</span>
+<span class="nc" id="L751">        List&lt;WebRegClass&gt; classes=Enrollments.stream().map(c-&gt;webRegClassDao.getClassByEnrollment(c)).collect(Collectors.toList());</span>
+
+<span class="nc bnc" id="L753" title="All 2 branches missed.">        if(classes==null) return false;</span>
+
+<span class="nc bnc" id="L755" title="All 6 branches missed.">        for(Enrollment enrollment: Enrollments) if(enrollment.getStatus().equals(&quot;pass&quot;)&amp;&amp;getCourseByClass(webRegClassDao.getClassByEnrollment(enrollment)).getId()==courseId)return true;</span>
+
+
+<span class="nc" id="L758">        return false;</span>
+    }
+
+    @Override
+    public boolean checkTimeConflict(Student student, WebRegClass theClass) {
+        //return false;
+<span class="nc" id="L764">        List&lt;Enrollment&gt; enrollments= enrollmentDao.getClassesByStudentId(student.getId());</span>
+<span class="nc" id="L765">        List&lt;Enrollment&gt; Enrollments=enrollments.stream().filter(c-&gt;c.getStatus().equals(&quot;ongoing&quot;)).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L766" title="All 2 branches missed.">        if(Enrollments==null) return false;</span>
+
+<span class="nc" id="L768">        List&lt;WebRegClass&gt; classes=Enrollments.stream().map(c-&gt;webRegClassDao.getClassByEnrollment(c)).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L769" title="All 2 branches missed.">        if(classes==null) return false;</span>
+
+<span class="nc" id="L771">        List&lt;Lecture&gt; lectures=classes.stream().map(c-&gt;lectureDao.getLectureByClass(c)).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L772" title="All 2 branches missed.">        if(lectures==null) return false;</span>
+
+<span class="nc" id="L774">        Lecture theLecture=lectureDao.getLectureByClass(theClass);</span>
+<span class="nc bnc" id="L775" title="All 2 branches missed.">        if(theLecture==null) return false;</span>
+
+<span class="nc bnc" id="L777" title="All 2 branches missed.">        for(int i=0;i&lt;classes.size();i++){</span>
+<span class="nc bnc" id="L778" title="All 2 branches missed.">            if(getSemesterByClass(classes.get(i)).getId()!=getSemesterByClass(theClass).getId()) continue;</span>
+
+<span class="nc bnc" id="L780" title="All 2 branches missed.">            if(lectures.get(i).getEnd_time().before(theLecture.getStart_time())  ||</span>
+<span class="nc bnc" id="L781" title="All 2 branches missed.">                    lectures.get(i).getStart_time().after(theLecture.getEnd_time())||</span>
+<span class="nc bnc" id="L782" title="All 2 branches missed.">                    lectures.get(i).getDay_of_week()!=theLecture.getDay_of_week()</span>
+<span class="nc" id="L783">            ) continue;</span>
+<span class="nc" id="L784">            else return true;</span>
+        }
+<span class="nc" id="L786">        return false;</span>
+    }
+
+    @Override
+    public List&lt;Course&gt; getAllCourses() {
+<span class="nc" id="L791">        return courseDao.getAllCourses();</span>
+    }
+
+    @Override
+    public int createNewCourse(Course course) {
+
+<span class="nc" id="L797">    return courseDao.createNewCourse(course);</span>
+    }
+
+    @Override
+    public boolean checkIfClassIsFull(WebRegClass theClass) {
+<span class="nc bnc" id="L802" title="All 2 branches missed.">        return enrollmentDao.getEnrollmentNumByClassId(theClass.getId())==theClass.getCapacity()?true:false;</span>
+
+    }
+
+    public boolean checkIfDroppable(int studentId,WebRegClass theClass){
+<span class="nc" id="L807">        Semester semester=semesterDao.getSemesterByClass(theClass);</span>
+<span class="nc bnc" id="L808" title="All 4 branches missed.">        if(enrollmentDao.getStatus(studentId,theClass.getId())==null||!enrollmentDao.getStatus(studentId,theClass.getId()).equals(&quot;ongoing&quot;)) return false;</span>
+
+<span class="nc" id="L810">        Calendar c = Calendar.getInstance();</span>
+<span class="nc" id="L811">        c.setTime(semester.getStart_date());</span>
+<span class="nc" id="L812">        c.add(Calendar.DATE,14);</span>
+
+<span class="nc" id="L814">        Date date=c.getTime();</span>
+
+<span class="nc" id="L816">        Date d=new java.sql.Date(System.currentTimeMillis());</span>
+
+<span class="nc bnc" id="L818" title="All 2 branches missed.">        if(!d.before(date)) throw new UserServiceException(&quot;it's been 14 days after class started.&quot;);</span>
+
+<span class="nc" id="L820">        return true;</span>
+
+
+
+    }
+    public boolean checkIfWithdrawable(int studentId,WebRegClass theClass){
+
+<span class="nc" id="L827">        Semester semester=semesterDao.getSemesterByClass(theClass);</span>
+<span class="nc bnc" id="L828" title="All 4 branches missed.">        if(enrollmentDao.getStatus(studentId,theClass.getId())==null||!enrollmentDao.getStatus(studentId,theClass.getId()).equals(&quot;ongoing&quot;)) return false;</span>
+
+<span class="nc" id="L830">        Calendar c = Calendar.getInstance();</span>
+<span class="nc" id="L831">        c.setTime(semester.getStart_date());</span>
+<span class="nc" id="L832">        c.add(Calendar.DATE,14);</span>
+
+<span class="nc" id="L834">        Date date=c.getTime();</span>
+
+<span class="nc" id="L836">        Date d=new java.sql.Date(System.currentTimeMillis());</span>
+
+<span class="nc bnc" id="L838" title="All 2 branches missed.">        if(!d.after(date)) throw new UserServiceException(&quot;it's less than 14 days before class started.&quot;);</span>
+
+<span class="nc" id="L840">        return true;</span>
+    }
+
+    @Override
+    public boolean checkIfWithdrawn(int studentId, int classId) {
+
+<span class="nc" id="L846">        List&lt;Enrollment&gt; enrollments=enrollmentDao.getEnrollmentsByStudentClassId(studentId,classId);</span>
+
+<span class="nc bnc" id="L848" title="All 2 branches missed.">        if(enrollments==null) return false;</span>
+
+<span class="nc bnc" id="L850" title="All 2 branches missed.">        for(Enrollment enrollment:enrollments){</span>
+<span class="nc bnc" id="L851" title="All 2 branches missed.">            if(enrollment.getStatus().equals(&quot;withdraw&quot;)) return true;</span>
+<span class="nc" id="L852">        }</span>
+
+<span class="nc" id="L854">        return false;</span>
+    }
+
+    @Override
+    public List&lt;Student&gt; getAllStudents() {
+<span class="nc" id="L859">        return studentDao.getAllStudents();</span>
+    }
+
+    @Override
+    public List&lt;WebRegClass&gt; getAllStatusClassesbyStudentId(int studentId) {
+<span class="nc" id="L864">        return webRegClassDao.getAllStatusClassesByStudentId(studentId);</span>
+    }
+
+    @Override
+    public int createNewClass(WebRegClass theClass) {
+<span class="nc" id="L869">        return webRegClassDao.createNewClass(theClass);</span>
+
+    }
+
+    @Override
+    public List&lt;WebRegClass&gt; getAllClasses() {
+<span class="nc" id="L875">        return webRegClassDao.getAllClasses();</span>
+    }
+
+    @Override
+    public void deactivateClassById(int classId) {
+<span class="nc" id="L880">        webRegClassDao.deactivateClassById(classId);</span>
+<span class="nc" id="L881">    }</span>
+
+    @Override
+    public void activateClassById(int classId) {
+<span class="nc" id="L885">        webRegClassDao.activateClassById(classId);</span>
+<span class="nc" id="L886">    }</span>
+
+    @Override
+    public int createApplicationByStudentClassId(int id, int classId)  {
+<span class="nc" id="L890">        int id2=applicationDao.createApplicationByStudentClassId(id,classId);</span>
+<span class="nc" id="L891">        return id2;</span>
+    }
+
+    @Override
+    public List&lt;Application&gt; getApplicationsByStudentId(int id) {
+<span class="nc" id="L896">        return applicationDao.getApplicationByStudentId(id);</span>
+    }
+
+    @Override
+    public List&lt;Application&gt; getAllPendingApplications() {
+<span class="nc" id="L901">        return applicationDao.getPendingApplications();</span>
+    }
+
+    @Override
+    public void rejectOrApproveByIdFeedback(String status, int applicationId, String f) {
+<span class="nc" id="L906">        applicationDao.rejectOrApproveByIdFeedback(status,applicationId,f);</span>
+<span class="nc" id="L907">    }</span>
+
+    @Override
+    public void activateStudentById(int studentId) {
+<span class="nc" id="L911">        studentDao.activateStudentById(studentId);</span>
+<span class="nc" id="L912">    }</span>
+
+    @Override
+    public void deactivateStudentById(int studentId) {
+<span class="nc" id="L916">        studentDao.deactivateStudentById(studentId);</span>
+<span class="nc" id="L917">    }</span>
+
+    @Override
+    public void passStudentByClassId(int studentId, int classId) {
+<span class="nc" id="L921">        enrollmentDao.passStudentByClassId(studentId,classId);</span>
+<span class="nc" id="L922">    }</span>
+
+    @Override
+    public void failStudentByClassId(int studentId, int classId) {
+<span class="nc" id="L926">        enrollmentDao.failStudentByClassId(studentId,classId);</span>
+<span class="nc" id="L927">    }</span>
+
+    @Override
+    public String getRequestByApplicationId(int applicationId) {
+<span class="nc" id="L931">        return applicationDao.getRequestByApplicationId(applicationId);</span>
+    }
+
+    @Override
+    public int getStudentIdByApplicationId(int applicationId) {
+<span class="nc" id="L936">        return applicationDao.getStudentIdByApplicationId(applicationId);</span>
+    }
+
+    @Override
+    public int getClassIdByApplicationId(int applicationId) {
+<span class="nc" id="L941">        return applicationDao.getClassIdByApplicationId(applicationId);</span>
+    }
+
+    @Override
+    public int getTotalPages(int studentId,int limit) {
+
+<span class="nc" id="L947">            List&lt;WebRegClass&gt; classes=getClassesbyStudentId(studentId);</span>
+<span class="nc bnc" id="L948" title="All 2 branches missed.">            if(classes==null) return 0;</span>
+<span class="nc bnc" id="L949" title="All 2 branches missed.">            if(classes.size()%limit==0) return classes.size()/limit;</span>
+<span class="nc" id="L950">            else return classes.size()/limit+1;</span>
+
+    }
+
+//    @Override
+//    public List&lt;WebRegClass&gt; getClassesbyStudentIdPageLimit(int id, int page, int limit) {
+//        List&lt;WebRegClass&gt; webRegClasses=webRegClassDao.getWebRegClassesByStudentId(id);
+//
+//        return webRegClasses.subList((page-1)*limit,Math.min((page)*limit,webRegClasses.size()));
+//                //webRegClassDao.getWebRegClassesByStudentIdPageLimit(id,  page, limit);
+//    }
+
+    @Override
+    public int getTotalPagesAdmin(int limit) {
+<span class="nc" id="L964">        List&lt;Student&gt; students=studentDao.getAllStudents();</span>
+<span class="nc bnc" id="L965" title="All 2 branches missed.">        if(students==null) return 0;</span>
+<span class="nc bnc" id="L966" title="All 2 branches missed.">        if(students.size()%limit==0) return students.size()/limit;</span>
+<span class="nc" id="L967">        else return students.size()/limit+1;</span>
+                //getTotalPagesAdmin(limit);
+    }
+
+//    @Override
+//    public List&lt;Student&gt; getStudentsByPageLimit(int page, int limit) {
+//        List&lt;Student&gt; items = studentDao.getAllStudents();
+//
+//        return items.subList((page-1)*limit,Math.min((page)*limit,items.size()));
+//    }
+
+    @Override
+    public String getCourseNameById(int courseId) {
+<span class="nc" id="L980">        return courseDao.getCourseNameById(courseId);</span>
+    }
+
+//    @Override
+//    public Lecture getLectureById(int lecture_id) {
+//        return lectureDao.getLectureById(lecture_id);
+//    }
+
+    @Override
+    public void withdrawApplication(int applicationId, int id) {
+<span class="nc" id="L990">        applicationDao.withdrawApplication(applicationId,id);</span>
+<span class="nc" id="L991">    }</span>
+
+    @Override
+    public Application getApplicationById(int applicationId) {
+<span class="nc" id="L995">        return applicationDao.getApplicationById(applicationId);</span>
+    }
+
+
+
+    @Override
+    public Department getDepartmentByStudent(Student c) {
+<span class="nc" id="L1002">        return departmentDao.getDepartmentByStudent(c);</span>
+    }
+
+    @Override
+    public Course getCourseByClass(WebRegClass c) {
+<span class="nc" id="L1007">      return courseDao.getCourseByClass(c);</span>
+       // return null;
+    }
+
+    @Override
+    public Professor getProfessorByClass(WebRegClass c) {
+<span class="nc" id="L1013">        return professorDao.getProfessorByClass(c);</span>
+    }
+
+    @Override
+    public Semester getSemesterByClass(WebRegClass c) {
+<span class="nc" id="L1018">        return semesterDao.getSemesterByClass(c);</span>
+    }
+
+    @Override
+    public Department getDepartmentByProfessor(Professor c) {
+<span class="nc" id="L1023">        return departmentDao.getDepartmentByProfessor(c);</span>
+    }
+
+    @Override
+    public List&lt;Enrollment&gt; getEnrollmentByStudentId(int id) {
+<span class="nc" id="L1028">        return enrollmentDao.getEnrollmentByStudentId(id);</span>
+    }
+
+//    @Override
+//    public List&lt;Enrollment&gt; getEnrollmentByStudentIdPageLimit(int id, int page, int limit) {
+//    List&lt;Enrollment&gt; items=enrollmentDao.getEnrollmentByStudentId(id);
+//        return items.subList((page-1)*limit,Math.min((page)*limit,items.size()));
+//    }
+
+    @Override
+    public WebRegClass getClassByEnrollment(Enrollment c) {
+
+<span class="nc" id="L1040">        return webRegClassDao.getClassByEnrollment(c);</span>
+    }
+
+    @Override
+    public Integer getActiveEnrollmentsByClass(WebRegClass c) {
+
+<span class="nc" id="L1046">        return enrollmentDao.getEnrollmentsByClass(c).stream().filter(s-&gt;s.getStatus().equals(&quot;ongoing&quot;)).collect(Collectors.toList()).size();</span>
+    }
+
+    @Override
+    public Department getDepartmentByCourse(Course course) {
+<span class="nc" id="L1051">        return departmentDao.getDepartmentByCourse(course);</span>
+    }
+
+    @Override
+    public Classroom getClassroomByClass(WebRegClass theWebRegClass) {
+<span class="nc" id="L1056">        return classroomDao.getClassroomByClass(theWebRegClass);</span>
+    }
+
+    @Override
+    public List&lt;Prerequisite&gt; getPrerequisiteByCourse(Course course) {
+<span class="nc" id="L1061">        return prerequisiteDao.getPrerequisiteByCourse(course);</span>
+    }
+
+    @Override
+    public Student getStudentByEnrollment(Enrollment c) {
+<span class="nc" id="L1066">        return studentDao.getStudentByEnrollment(c);</span>
+    }
+
+    @Override
+    public Student getStudentByApplication(Application c) {
+<span class="nc" id="L1071">        return studentDao.getStudentByApplication(c);</span>
+
+    }
+
+
+
+    @Override
+    public WebRegClass getWebRegClassByApplication(Application application) {
+<span class="nc" id="L1079">        return webRegClassDao.getWebRegClassByApplication(application);</span>
+    }
+
+
+
+    @Override
+    public void dropEnrollments(int studentId, int classId) {
+<span class="nc" id="L1086">        enrollmentDao.dropEnrollment(studentId,classId);</span>
+<span class="nc" id="L1087">    }</span>
+
+    @Override
+    public void withdrawEnrollment(int studentId, int classId) {
+
+
+
+<span class="nc" id="L1094">        enrollmentDao.withdrawEnrollment(studentId,classId);</span>
+<span class="nc" id="L1095">    }</span>
+
+    @Override
+    public int createEnrollmentApplication(int studentId, int classId) {
+<span class="nc" id="L1099">        int id=applicationDao.createEnrollmentApplication(studentId,classId);</span>
+<span class="nc" id="L1100">        return id;</span>
+    }
+
+    @Override
+    public void addEnrollment(int studentId, int classId) {
+<span class="nc" id="L1105">            enrollmentDao.addEnrollment(studentId, classId);</span>
+<span class="nc" id="L1106">    }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

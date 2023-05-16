@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebRegClassHibernateDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.dao.hibernateDao</a> &gt; <span class="el_source">WebRegClassHibernateDao.java</span></div><h1>WebRegClassHibernateDao.java</h1><pre class="source lang-java linenums">package org.example.dao.hibernateDao;
+
+
+import lombok.Getter;
+import lombok.Setter;
+import org.example.dao.AbstractHibernateDao;
+import org.example.dao.InterF.WebRegClassDao;
+import org.example.domain.*;
+import org.example.domain.hibernate.*;
+
+import org.example.exceptions.UserServiceException;
+import org.hibernate.Session;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.criteria.*;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+
+@Getter
+@Setter
+@Repository(&quot;WebRegClassDaoHibernate&quot;)
+@Transactional
+<span class="nc" id="L29">public class WebRegClassHibernateDao extends AbstractHibernateDao&lt;WebRegClassHibernate&gt; implements WebRegClassDao {</span>
+
+    @Override
+    public WebRegClass getWebRegClassById(int id) {
+<span class="nc" id="L33">        WebRegClassHibernate webRegClassHibernate=sessionFactory.getCurrentSession().get(WebRegClassHibernate.class,id);</span>
+<span class="nc" id="L34">        return  webRegClassHibernate;</span>
+    }
+
+    @Override
+    public List&lt;WebRegClass&gt; getWebRegClassesByCourseId(int id) {
+<span class="nc" id="L39">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+
+<span class="nc" id="L44">        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+        // result class
+
+<span class="nc" id="L47">        CourseHibernate courseHibernate=session.load(CourseHibernate.class,id);</span>
+
+<span class="nc" id="L49">        List&lt;WebRegClass&gt; webRegClasses=new ArrayList&lt;&gt;(courseHibernate.getWebRegClassHibernates());</span>
+
+        //List&lt;WebRegClass&gt; items =cr.list();
+//        session.close();
+<span class="nc" id="L53">        return webRegClasses;</span>
+    }
+
+    @Override
+    public List&lt;WebRegClass&gt; getWebRegClassesByStudentId(int id) {
+
+<span class="nc" id="L59">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+        //System.out.print(session.get(StudentHibernate.class,id).getId());
+
+<span class="nc" id="L64">        List&lt;EnrollmentHibernate&gt; entityList=new ArrayList&lt;&gt;(session.get(StudentHibernate.class,id).getEnrollmentHibernates());</span>
+
+<span class="nc" id="L66">        List&lt;WebRegClass&gt; webRegClasses=entityList.stream().map(c-&gt;</span>
+        {
+<span class="nc" id="L68">            return c.getWebRegClassHibernate();</span>
+<span class="nc" id="L69">        }).collect(Collectors.toList());</span>
+//        transaction.commit();
+//        session.close();
+<span class="nc" id="L72">         System.out.print(webRegClasses.size());</span>
+
+<span class="nc" id="L74">        return webRegClasses;</span>
+    }
+
+    @Override
+    public List&lt;WebRegClass&gt; getAllActiveClasses() {
+<span class="nc" id="L79">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L83">        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+        // result class
+<span class="nc" id="L85">        CriteriaQuery&lt;WebRegClassHibernate&gt; criteriaQuery = criteriaBuilder.createQuery(WebRegClassHibernate.class);</span>
+<span class="nc" id="L86">        Root&lt;WebRegClassHibernate&gt; aRoot=criteriaQuery.from(WebRegClassHibernate.class);</span>
+
+
+<span class="nc" id="L89">        Predicate predicateA=criteriaBuilder.equal(aRoot.get(&quot;is_active&quot;), true);</span>
+<span class="nc" id="L90">        criteriaQuery.where(predicateA);</span>
+<span class="nc" id="L91">        List&lt;WebRegClassHibernate&gt; items = session.createQuery(criteriaQuery).getResultList();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        List&lt;WebRegClassHibernate&gt; res1=items.stream().sorted((a,b)-&gt;a.getSemesterHibernate().getStart_date().after(b.getSemesterHibernate().getStart_date())?-1:1).collect(Collectors.toList());</span>
+
+<span class="nc" id="L94">        List&lt;WebRegClass&gt; res=res1.stream().filter(a-&gt;a.getSemesterHibernate().getEnd_date().after(new Date(System.currentTimeMillis()))).collect(Collectors.toList());</span>
+//        for(WebRegClassHibernate webRegClassHibernate:res1){
+//            //System.out.print(webRegClassHibernate.getCourseHibernate().getCourse_name()+&quot;\n\n\n\n&quot; );
+//            if(webRegClassHibernate.getSemesterHibernate().getEnd_date().after(new Date(System.currentTimeMillis())))
+//                continue;
+//
+//
+//                else res.add(webRegClassHibernate);
+//        }
+<span class="nc" id="L103">        return res;</span>
+
+//        session.close();
+        //return res;
+    }
+    @Cacheable(&quot;classes&quot;)
+    @Override
+    public List&lt;WebRegClass&gt; getAllClasses() {
+<span class="nc" id="L111">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+//
+<span class="nc" id="L115">        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+        // result class
+<span class="nc" id="L117">        CriteriaQuery&lt;WebRegClassHibernate&gt; criteriaQuery = criteriaBuilder.createQuery(WebRegClassHibernate.class);</span>
+//        Root&lt;WebRegClassHibernate&gt; aRoot=criteriaQuery.from(WebRegClassHibernate.class);
+<span class="nc" id="L119">        criteriaQuery.from(WebRegClassHibernate.class);</span>
+
+//        Predicate predicateA=criteriaBuilder.equal(aRoot.get(&quot;is_active&quot;), true);
+//        criteriaQuery.where(predicateA);
+<span class="nc" id="L123">        List&lt;WebRegClassHibernate&gt; items = session.createQuery(criteriaQuery).getResultList();</span>
+
+<span class="nc" id="L125">        List&lt;WebRegClass&gt; res=items.stream().filter(a-&gt;</span>
+<span class="nc" id="L126">                        a.getSemesterHibernate().getEnd_date().after(new Date(System.currentTimeMillis())))</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                .sorted((a,b)-&gt;a.getSemesterHibernate().getStart_date().after(b.getSemesterHibernate().getStart_date())?1:-1).collect(Collectors.toList());</span>
+
+//        session.close();
+<span class="nc" id="L130">        return res;</span>
+    }
+
+    @Override
+    public List&lt;WebRegClass&gt; getAllStatusClassesByStudentId(int studentId) {
+<span class="nc" id="L135">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+//        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+//        // result class
+//        CriteriaQuery&lt;WebRegClass&gt; criteriaQuery = criteriaBuilder.createQuery(WebRegClass.class);
+//        Root&lt;WebRegClassHibernate&gt; aRoot=criteriaQuery.from(WebRegClassHibernate.class);
+//
+//        criteriaQuery.from(WebRegClassHibernate.class);
+//
+//        Predicate predicateA=criteriaBuilder.equal(aRoot.get(&quot;is_active&quot;), true);
+////        criteriaQuery.where(predicateA);
+//        List&lt;WebRegClass&gt; items = session.createQuery(criteriaQuery).getResultList();
+
+<span class="nc" id="L150">        Set&lt;EnrollmentHibernate&gt; enrollmentHibernates=session.get(StudentHibernate.class,studentId).getEnrollmentHibernates();</span>
+
+<span class="nc" id="L152">        List&lt;WebRegClass&gt; webRegClassHibernates=new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        for(EnrollmentHibernate enrollmentHibernate:enrollmentHibernates){</span>
+<span class="nc" id="L155">            webRegClassHibernates.add(enrollmentHibernate.getWebRegClassHibernate());</span>
+<span class="nc" id="L156">        }</span>
+
+//        session.close();
+<span class="nc" id="L159">        return webRegClassHibernates;</span>
+    }
+
+    @Override
+    public int createNewClass(WebRegClass theClass) {
+<span class="nc" id="L164">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+
+<span class="nc" id="L169">        CourseHibernate courseHibernate=session.get(CourseHibernate.class,theClass.getCourse_id());</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if(courseHibernate==null) throw new UserServiceException(&quot;Course not found&quot;);</span>
+<span class="nc" id="L171">        SemesterHibernate semsterHibernate=session.get(SemesterHibernate.class,theClass.getSemester_id());</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        if(semsterHibernate==null) throw new UserServiceException(&quot;Semester not found&quot;);</span>
+<span class="nc" id="L173">        ProfessorHibernate professorHibernate=session.get(ProfessorHibernate.class,theClass.getProfessor_id());</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if(professorHibernate==null) throw new UserServiceException(&quot;professor not found&quot;);</span>
+<span class="nc" id="L175">        ClassroomHibernate classroomHibernate=session.get(ClassroomHibernate.class,theClass.getClassroom_id());</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if(classroomHibernate==null) throw new UserServiceException(&quot;classroom not found&quot;);</span>
+<span class="nc" id="L177">        LectureHibernate lectureHibernate=session.get(LectureHibernate.class,theClass.getLecture_id());</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if(lectureHibernate==null) throw new UserServiceException(&quot;lecture not found&quot;);</span>
+
+
+<span class="nc" id="L181">        WebRegClassHibernate webRegClassHibernate=new WebRegClassHibernate();</span>
+
+<span class="nc" id="L183">        webRegClassHibernate.setCourseHibernate(courseHibernate);</span>
+<span class="nc" id="L184">        webRegClassHibernate.setSemesterHibernate(semsterHibernate);</span>
+<span class="nc" id="L185">        webRegClassHibernate.setProfessorHibernate(professorHibernate);</span>
+<span class="nc" id="L186">        webRegClassHibernate.setClassroomHibernate(classroomHibernate);</span>
+<span class="nc" id="L187">        webRegClassHibernate.setCapacity(theClass.getCapacity());</span>
+<span class="nc" id="L188">        webRegClassHibernate.set_active(true);</span>
+<span class="nc" id="L189">        webRegClassHibernate.setLectureHibernate(lectureHibernate);</span>
+
+
+<span class="nc" id="L192">        session.save(webRegClassHibernate);</span>
+
+//        transaction.commit();
+//        session.close();
+<span class="nc" id="L196">        return webRegClassHibernate.getId();</span>
+    }
+
+    @Override
+    public void deactivateClassById(int classId) {
+<span class="nc" id="L201">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L205">        WebRegClassHibernate webRegClassHibernate=session.get(WebRegClassHibernate.class,classId);</span>
+
+<span class="nc" id="L207">        webRegClassHibernate.set_active(false);</span>
+
+<span class="nc" id="L209">        session.update(webRegClassHibernate);</span>
+//        transaction.commit();
+
+//        session.close();
+<span class="nc" id="L213">    }</span>
+
+    @Override
+    public void activateClassById(int classId) {
+<span class="nc" id="L217">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L221">        WebRegClassHibernate webRegClassHibernate=session.get(WebRegClassHibernate.class,classId);</span>
+
+<span class="nc" id="L223">        webRegClassHibernate.set_active(true);</span>
+
+<span class="nc" id="L225">        session.update(webRegClassHibernate);</span>
+//        transaction.commit();
+
+//        session.close();
+<span class="nc" id="L229">    }</span>
+
+    @Override
+    public WebRegClass getClassByEnrollment(Enrollment c) {
+<span class="nc" id="L233">        EnrollmentHibernate enrollmentHibernate= sessionFactory.getCurrentSession().get(EnrollmentHibernate.class,c.getId());</span>
+
+<span class="nc" id="L235">        return enrollmentHibernate.getWebRegClassHibernate();</span>
+    }
+
+    @Override
+    public WebRegClass getWebRegClassByApplication(Application application) {
+<span class="nc" id="L240">        ApplicationHibernate applicationHibernate=sessionFactory.getCurrentSession().get(ApplicationHibernate.class,application.getId());</span>
+
+
+<span class="nc" id="L243">        return applicationHibernate.getWebRegClassHibernate();</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

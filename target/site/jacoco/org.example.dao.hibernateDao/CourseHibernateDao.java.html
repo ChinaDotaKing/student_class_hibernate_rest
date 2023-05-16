@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CourseHibernateDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.dao.hibernateDao</a> &gt; <span class="el_source">CourseHibernateDao.java</span></div><h1>CourseHibernateDao.java</h1><pre class="source lang-java linenums">package org.example.dao.hibernateDao;
+
+
+import lombok.Getter;
+import lombok.Setter;
+import org.example.dao.AbstractHibernateDao;
+import org.example.dao.InterF.CourseDao;
+import org.example.domain.Course;
+import org.example.domain.WebRegClass;
+
+import org.example.domain.hibernate.CourseHibernate;
+import org.example.domain.hibernate.DepartmentHibernate;
+import org.example.domain.hibernate.WebRegClassHibernate;
+import org.example.exceptions.UserServiceException;
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.criteria.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
+
+@Getter
+@Setter
+@Repository(&quot;CourseDaoHibernate&quot;)
+@Transactional
+<span class="nc" id="L29">public class CourseHibernateDao extends AbstractHibernateDao&lt;CourseHibernate&gt; implements CourseDao {</span>
+
+
+    @Override
+    public Course getCourseById(int id) {
+
+<span class="nc" id="L35">        CourseHibernate courseHibernate=sessionFactory.getCurrentSession().get(CourseHibernate.class,id);</span>
+<span class="nc" id="L36">        return  courseHibernate;</span>
+    }
+
+    @Override
+    public List&lt;Course&gt; getAllCourses() {
+<span class="nc" id="L41">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L45">        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+        // result class
+<span class="nc" id="L47">        CriteriaQuery&lt;CourseHibernate&gt; criteriaQuery = criteriaBuilder.createQuery(CourseHibernate.class);</span>
+
+<span class="nc" id="L49">        criteriaQuery.from(CourseHibernate.class);</span>
+//        Root&lt;CourseHibernate&gt; aRoot=criteriaQuery.from(CourseHibernate.class);
+//        aRoot.join(&quot;Department&quot;, JoinType.INNER);
+//
+//
+//        criteriaQuery.multiselect(
+//                aRoot.get(&quot;id&quot;),
+//                aRoot.get(&quot;course_name&quot;),
+//                aRoot.get(&quot;course_code&quot;),
+//                aRoot.get(&quot;Department&quot;).get(&quot;id&quot;),
+//
+//
+//                aRoot.get(&quot;description&quot;)
+//        );
+
+
+//        Predicate predicateA = criteriaBuilder.equal(aRoot.get(&quot;Student&quot;).get(&quot;status&quot;), &quot;Pending&quot;);
+
+//        criteriaQuery.where(predicateA);
+<span class="nc" id="L68">        List&lt;Course&gt; items = session.createQuery(criteriaQuery).getResultList().stream().collect(Collectors.toList());</span>
+//        transaction.commit();
+//        session.close();
+<span class="nc" id="L71">        return items;</span>
+    }
+
+    @Override
+    public int createNewCourse(Course course) {
+<span class="nc" id="L76">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+
+
+<span class="nc" id="L82">        CourseHibernate courseHibernate=new CourseHibernate();</span>
+
+<span class="nc" id="L84">        DepartmentHibernate departmentHibernate=session.get(DepartmentHibernate.class,course.getDept_id());</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if(departmentHibernate==null) throw new UserServiceException(&quot;Department not found&quot;);</span>
+
+<span class="nc" id="L87">        courseHibernate.setCourse_code(course.getCourse_code());</span>
+<span class="nc" id="L88">        courseHibernate.setCourse_name(course.getCourse_name());</span>
+<span class="nc" id="L89">        courseHibernate.setDepartmentHibernate(departmentHibernate);</span>
+<span class="nc" id="L90">        courseHibernate.setDescription(course.getDescription());</span>
+
+
+<span class="nc" id="L93">        session.save(courseHibernate);</span>
+<span class="nc" id="L94">        return courseHibernate.getId();</span>
+//        transaction.commit();
+//        session.close();
+
+    }
+
+    @Override
+    public String getCourseNameById(int courseId) {
+<span class="nc" id="L102">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+//        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+//        // result class
+//        CriteriaQuery&lt;String&gt; criteriaQuery = criteriaBuilder.createQuery(String.class);
+//        Root&lt;CourseHibernate&gt; aRoot=criteriaQuery.from(CourseHibernate.class);
+//        aRoot.join(&quot;Department&quot;, JoinType.INNER);
+//
+//
+//        criteriaQuery.multiselect(
+//
+//                aRoot.get(&quot;course_name&quot;)
+//
+//        );
+//
+//
+//        Predicate predicateA = criteriaBuilder.equal(aRoot.get(&quot;id&quot;), courseId);
+//
+//        criteriaQuery.where(predicateA);
+//        List&lt;String&gt; items = session.createQuery(criteriaQuery).getResultList();
+<span class="nc" id="L124">        CourseHibernate courseHibernate=session.load(CourseHibernate.class,courseId);</span>
+
+
+//        transaction.commit();
+//        session.close();
+<span class="nc" id="L129">        return courseHibernate.getCourse_name();</span>
+    }
+
+    @Override
+    public Course getCourseByClass(WebRegClass c) {
+<span class="nc" id="L134">        Session session=sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L136">        WebRegClassHibernate webRegClassHibernate=session.get(WebRegClassHibernate.class,c.getId());</span>
+
+<span class="nc" id="L138">        return webRegClassHibernate.getCourseHibernate();</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

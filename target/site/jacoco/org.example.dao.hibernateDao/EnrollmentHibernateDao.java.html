@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EnrollmentHibernateDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.dao.hibernateDao</a> &gt; <span class="el_source">EnrollmentHibernateDao.java</span></div><h1>EnrollmentHibernateDao.java</h1><pre class="source lang-java linenums">package org.example.dao.hibernateDao;
+
+
+import lombok.Getter;
+import lombok.Setter;
+import org.example.dao.AbstractHibernateDao;
+import org.example.dao.InterF.EnrollmentDao;
+import org.example.domain.Application;
+import org.example.domain.Enrollment;
+import org.example.domain.Student;
+import org.example.domain.WebRegClass;
+import org.example.domain.hibernate.*;
+import org.example.exceptions.UserServiceException;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.criteria.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+
+@Getter
+@Setter
+@Repository(&quot;EnrollmentDaoHibernate&quot;)
+@Transactional
+<span class="nc" id="L30">public class EnrollmentHibernateDao extends AbstractHibernateDao&lt;EnrollmentHibernate&gt; implements EnrollmentDao {</span>
+
+
+    @Override
+    public Enrollment getEnrollmentById(int id) {
+<span class="nc" id="L35">        EnrollmentHibernate enrollmentHibernate=sessionFactory.getCurrentSession().load(EnrollmentHibernate.class,id);</span>
+<span class="nc" id="L36">        return  enrollmentHibernate;</span>
+    }
+
+    @Override
+    public List&lt;Enrollment&gt; getActiveEnrollmentsByClassId(int classId) {
+<span class="nc" id="L41">        Session session=sessionFactory.getCurrentSession();</span>
+
+
+
+<span class="nc" id="L45">        List&lt;Enrollment&gt; items1= new ArrayList&lt;&gt;(session.get(WebRegClassHibernate.class,classId).getEnrollmentHibernates());</span>
+
+<span class="nc" id="L47">        List&lt;Enrollment&gt; items2=items1.stream().filter(c-&gt;c.getStatus().equals(&quot;ongoing&quot; )).collect(Collectors.toList());</span>
+<span class="nc" id="L48">        return items2;</span>
+    }
+
+    @Override
+    public boolean getEnrollmentStatus(int studentId, int classId) {
+<span class="nc" id="L53">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+//        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+//        // result class
+//        CriteriaQuery&lt;String&gt; criteriaQuery = criteriaBuilder.createQuery(String.class);
+//        Root&lt;EnrollmentHibernate&gt; aRoot=criteriaQuery.from(EnrollmentHibernate.class);
+//        aRoot.join(&quot;Student&quot;, JoinType.INNER);
+//        aRoot.join(&quot;WebRegClass&quot;, JoinType.INNER);
+//
+//        criteriaQuery.multiselect(
+//                aRoot.get(&quot;status&quot;)
+//        );
+//
+//
+//        Predicate predicateA = criteriaBuilder.equal(aRoot.get(&quot;Student&quot;).get(&quot;id&quot;), studentId);
+//        Predicate predicateB = criteriaBuilder.equal(aRoot.get(&quot;WebRegClass&quot;).get(&quot;id&quot;), classId);
+//
+//        Predicate predicateC=criteriaBuilder.and(predicateB,predicateA);
+//        criteriaQuery.where(predicateC);
+
+
+<span class="nc" id="L76">        StudentHibernate items = session.get(StudentHibernate.class,studentId);</span>
+
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        for(EnrollmentHibernate item:items.getEnrollmentHibernates()){</span>
+<span class="nc bnc" id="L79" title="All 4 branches missed.">            if(item.getStatus().equals(&quot;ongoing&quot;)&amp;&amp;item.getWebRegClassHibernate().getId()==classId) return true;</span>
+<span class="nc" id="L80">        }</span>
+
+<span class="nc" id="L82">        return false;</span>
+
+
+                //session.createQuery(criteriaQuery).getResultList();
+
+//        session.close();
+//        return items.size()!=0?true:false;
+    }
+
+    @Override
+    public String getStatus(int studentId, int classId) {
+<span class="nc" id="L93">        Session session=sessionFactory.getCurrentSession();</span>
+
+//
+
+<span class="nc" id="L97">        StudentHibernate items = session.get(StudentHibernate.class,studentId);</span>
+
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        for(EnrollmentHibernate item:items.getEnrollmentHibernates()){</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">            if(item.getWebRegClassHibernate().getId()==classId) return item.getStatus();</span>
+<span class="nc" id="L101">        }</span>
+
+<span class="nc" id="L103">        return null;</span>
+    }
+
+    @Override
+    public List&lt;Enrollment&gt; getClassesByStudentId(int id) {
+<span class="nc" id="L108">        Session session=sessionFactory.getCurrentSession();</span>
+
+//
+<span class="nc" id="L111">        StudentHibernate studentHibernate=session.get(StudentHibernate.class,id);</span>
+
+<span class="nc bnc" id="L113" title="All 4 branches missed.">        List&lt;Enrollment&gt; items = studentHibernate.getEnrollmentHibernates().stream().filter(c-&gt;c.getStatus().equals(&quot;ongoing&quot;)||c.getStatus().equals(&quot;pass&quot;)).collect(Collectors.toList());</span>
+
+
+
+<span class="nc" id="L117">        return items;</span>
+    }
+
+    @Override
+    public int getEnrollmentNumByClassId(int id) {
+<span class="nc" id="L122">        Session session=sessionFactory.getCurrentSession();</span>
+
+
+
+<span class="nc" id="L126">        WebRegClassHibernate webRegClassHibernate=session.load(WebRegClassHibernate.class,id);</span>
+
+<span class="nc" id="L128">        return webRegClassHibernate.getEnrollmentHibernates().stream().filter(c-&gt;c.getStatus().equals(&quot;ongoing&quot;)).collect(Collectors.toList()).size();</span>
+
+    }
+
+    @Override
+    public void addEnrollment(int studentId, int classId) {
+<span class="nc" id="L134">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+<span class="nc" id="L137">        StudentHibernate studentHibernate=session.get(StudentHibernate.class,studentId);</span>
+<span class="nc" id="L138">        WebRegClassHibernate webRegClassHibernate=session.get(WebRegClassHibernate.class,classId);</span>
+<span class="nc" id="L139">        EnrollmentHibernate enrollmentHibernate=new EnrollmentHibernate();</span>
+
+<span class="nc" id="L141">        enrollmentHibernate.setStudentHibernate(studentHibernate);</span>
+<span class="nc" id="L142">        enrollmentHibernate.setWebRegClassHibernate(webRegClassHibernate);</span>
+<span class="nc" id="L143">        enrollmentHibernate.setStatus(&quot;ongoing&quot;);</span>
+
+
+<span class="nc" id="L146">        session.saveOrUpdate(enrollmentHibernate);</span>
+//        transaction.commit();
+
+//        session.close();
+<span class="nc" id="L150">    }</span>
+
+    @Override
+    public void dropEnrollment(int studentId, int classId) {
+<span class="nc" id="L154">        Session session=sessionFactory.getCurrentSession();</span>
+
+//
+
+<span class="nc" id="L158">        StudentHibernate items = session.get(StudentHibernate.class,studentId);</span>
+
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        for(EnrollmentHibernate item:items.getEnrollmentHibernates()){</span>
+<span class="nc bnc" id="L161" title="All 4 branches missed.">            if(item.getStatus().equals(&quot;ongoing&quot;)&amp;&amp;item.getWebRegClassHibernate().getId()==classId) session.delete(item);</span>
+<span class="nc" id="L162">        }</span>
+//        transaction.commit();
+//        session.close();
+
+<span class="nc" id="L166">    }</span>
+
+    @Override
+    public void withdrawEnrollment(int studentId, int classId) {
+
+<span class="nc" id="L171">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+//
+//
+//        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+//        // result class
+//        CriteriaQuery&lt;Integer&gt; criteriaQuery = criteriaBuilder.createQuery(Integer.class);
+//        Root&lt;EnrollmentHibernate&gt; aRoot=criteriaQuery.from(EnrollmentHibernate.class);
+//        aRoot.join(&quot;Student&quot;, JoinType.INNER);
+//        aRoot.join(&quot;WebRegClass&quot;, JoinType.INNER);
+//
+//        criteriaQuery.multiselect(
+//                aRoot.get(&quot;id&quot;)
+//        );
+//
+//
+//        Predicate predicateA = criteriaBuilder.equal(aRoot.get(&quot;WebRegClass&quot;).get(&quot;id&quot;), classId);
+//        Predicate predicateB = criteriaBuilder.equal(aRoot.get(&quot;Student&quot;).get(&quot;id&quot;), studentId);
+//        criteriaQuery.where(criteriaBuilder.and(predicateB,predicateA));
+//        List&lt;Integer&gt; items = session.createQuery(criteriaQuery).getResultList();
+//        EnrollmentHibernate enrollmentHibernate=session.load(EnrollmentHibernate.class,items.get(0));
+<span class="nc" id="L193">        StudentHibernate items = session.get(StudentHibernate.class,studentId);</span>
+
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        for(EnrollmentHibernate item:items.getEnrollmentHibernates()){</span>
+<span class="nc bnc" id="L196" title="All 4 branches missed.">            if(item.getStatus().equals(&quot;ongoing&quot;)&amp;&amp;item.getWebRegClassHibernate().getId()==classId)</span>
+<span class="nc" id="L197">        item.setStatus(&quot;withdraw&quot;);</span>
+<span class="nc" id="L198">        }</span>
+<span class="nc" id="L199">        session.save(items);</span>
+//        transaction.commit();
+//        session.close();
+
+<span class="nc" id="L203">    }</span>
+
+    @Override
+    public List&lt;Enrollment&gt; getEnrollmentsByStudentClassId(int studentId, int classId) {
+<span class="nc" id="L207">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+
+//
+
+<span class="nc" id="L214">        StudentHibernate items = session.get(StudentHibernate.class,studentId);</span>
+<span class="nc" id="L215">        List&lt;Enrollment&gt; res=new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        for(EnrollmentHibernate item:items.getEnrollmentHibernates()){</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">            if(item.getWebRegClassHibernate().getId()==classId) res.add(item);</span>
+<span class="nc" id="L218">        }</span>
+        //session.close();
+<span class="nc" id="L220">        return res;</span>
+
+    }
+
+    @Override
+    public void failStudentByClassId(int studentId, int classId) {
+<span class="nc" id="L226">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+
+//
+<span class="nc" id="L232">        StudentHibernate items = session.get(StudentHibernate.class,studentId);</span>
+
+<span class="nc bnc" id="L234" title="All 2 branches missed.">        if(items==null) throw new UserServiceException(&quot;Student not found!!&quot;);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        List&lt;EnrollmentHibernate&gt; enrollmentHibernates=items.getEnrollmentHibernates().stream().filter(c-&gt;c.getWebRegClassHibernate().getId()==classId).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if(enrollmentHibernates.size()==0) throw new UserServiceException(&quot;Student is not enrollment in the class!!&quot;);</span>
+
+<span class="nc bnc" id="L238" title="All 2 branches missed.">        for(EnrollmentHibernate item:items.getEnrollmentHibernates()){</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">            if(item.getWebRegClassHibernate().getId()==classId) item.setStatus(&quot;fail&quot;);</span>
+<span class="nc" id="L240">        }</span>
+<span class="nc" id="L241">        session.save(items);</span>
+//        transaction.commit();
+//        session.close();
+<span class="nc" id="L244">    }</span>
+
+    @Override
+    public void passStudentByClassId(int studentId, int classId) {
+
+<span class="nc" id="L249">        Session session=sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L251">        StudentHibernate items = session.get(StudentHibernate.class,studentId);</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        if(items==null) throw new UserServiceException(&quot;Student not found!!&quot;);</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">        List&lt;EnrollmentHibernate&gt; enrollmentHibernates=items.getEnrollmentHibernates().stream().filter(c-&gt;c.getWebRegClassHibernate().getId()==classId).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">        if(enrollmentHibernates.size()==0) throw new UserServiceException(&quot;Student is not enrollment in the class!!&quot;);</span>
+
+<span class="nc bnc" id="L256" title="All 2 branches missed.">        for(EnrollmentHibernate item:items.getEnrollmentHibernates()){</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">            if(item.getWebRegClassHibernate().getId()==classId) item.setStatus(&quot;pass&quot;);</span>
+<span class="nc" id="L258">        }</span>
+<span class="nc" id="L259">        session.save(items);</span>
+
+
+<span class="nc" id="L262">    }</span>
+
+    @Override
+    public List&lt;Enrollment&gt; getEnrollmentByStudentId(int id) {
+
+<span class="nc" id="L267">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L271">        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+        // result class
+<span class="nc" id="L273">        CriteriaQuery&lt;EnrollmentHibernate&gt; criteriaQuery = criteriaBuilder.createQuery(EnrollmentHibernate.class);</span>
+<span class="nc" id="L274">        criteriaQuery.from(EnrollmentHibernate.class);</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">        List&lt;Enrollment&gt; items = session.createQuery(criteriaQuery).getResultList().stream().filter(c-&gt;c.getStudentHibernate().getId()==id).collect(Collectors.toList());</span>
+
+//        session.close();
+<span class="nc" id="L278">        return items;</span>
+
+    }
+
+    @Override
+    public List&lt;Enrollment&gt; getEnrollmentsByClass(WebRegClass c) {
+
+<span class="nc" id="L285">        WebRegClassHibernate webRegClassHibernate=sessionFactory.getCurrentSession().get(WebRegClassHibernate.class,c.getId());</span>
+<span class="nc" id="L286">        List&lt;Enrollment&gt; enrollments=webRegClassHibernate.getEnrollmentHibernates().stream().collect(Collectors.toList());</span>
+
+<span class="nc" id="L288">        return enrollments;</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

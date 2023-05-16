@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationHibernateDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.dao.hibernateDao</a> &gt; <span class="el_source">ApplicationHibernateDao.java</span></div><h1>ApplicationHibernateDao.java</h1><pre class="source lang-java linenums">package org.example.dao.hibernateDao;
+
+
+import lombok.Getter;
+import lombok.Setter;
+import org.example.dao.AbstractHibernateDao;
+import org.example.dao.InterF.ApplicationDao;
+import org.example.domain.Application;
+import org.example.domain.hibernate.ApplicationHibernate;
+import org.example.domain.hibernate.StudentHibernate;
+import org.example.domain.hibernate.WebRegClassHibernate;
+
+import org.example.exceptions.UserServiceException;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.criteria.*;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+
+@Getter
+<span class="nc" id="L27">@Setter</span>
+@Repository(&quot;ApplicationDaoHibernate&quot;)
+@Transactional
+public class ApplicationHibernateDao extends AbstractHibernateDao&lt;ApplicationHibernate&gt;  implements ApplicationDao {
+
+
+
+    @Autowired
+<span class="nc" id="L35">    StudentHibernateDao studentHibernateDao;</span>
+
+<span class="nc" id="L37">    public ApplicationHibernateDao() {</span>
+<span class="nc" id="L38">        this.setClazz(ApplicationHibernate.class);</span>
+<span class="nc" id="L39">    }</span>
+    @Override
+    public Application getApplicationById(int id) {
+<span class="nc" id="L42">        ApplicationHibernate applicationHibernate=sessionFactory.getCurrentSession().get(ApplicationHibernate.class,id);</span>
+<span class="nc" id="L43">        return  applicationHibernate;</span>
+    }
+
+    @Override
+    public int createApplicationByStudentClassId(int id, int classId)  {
+<span class="nc" id="L48">        Session session=sessionFactory.getCurrentSession();</span>
+
+
+
+<span class="nc" id="L52">        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+        // result class
+<span class="nc" id="L54">        CriteriaQuery&lt;ApplicationHibernate&gt; criteriaQuery = criteriaBuilder.createQuery(ApplicationHibernate.class);</span>
+
+
+
+<span class="nc" id="L58">        ApplicationHibernate applicationHibernate=new ApplicationHibernate();</span>
+
+<span class="nc" id="L60">        WebRegClassHibernate webRegClassHibernate=session.get(WebRegClassHibernate.class,classId);</span>
+<span class="nc" id="L61">        StudentHibernate studentHibernate=session.get(StudentHibernate.class,id);</span>
+<span class="nc" id="L62">        applicationHibernate.setStudent_id(id);</span>
+<span class="nc" id="L63">        applicationHibernate.setClass_id(classId);</span>
+<span class="nc" id="L64">        applicationHibernate.setWebRegClassHibernate(webRegClassHibernate);</span>
+<span class="nc" id="L65">        applicationHibernate.setCreationTime(new Timestamp(System.currentTimeMillis()));</span>
+<span class="nc" id="L66">        applicationHibernate.setStudentHibernate(studentHibernate);</span>
+<span class="nc" id="L67">        applicationHibernate.setRequest(&quot;Add&quot;);</span>
+<span class="nc" id="L68">        applicationHibernate.setStatus(&quot;Pending&quot;);</span>
+<span class="nc" id="L69">        applicationHibernate.setFeedback(&quot;&quot;);</span>
+
+<span class="nc" id="L71">        session.save(applicationHibernate);</span>
+
+//        session.close();
+//        Predicate predicateA = criteriaBuilder.equal(aRoot.get(&quot;student_id&quot;), id);
+//        Predicate predicateB = criteriaBuilder.equal(aRoot.get(&quot;class_id&quot;), classId);
+//
+//
+//        Predicate finalPredicate
+//                = criteriaBuilder.and(predicateA, predicateB);
+//        criteriaQuery.where(finalPredicate);
+//        List&lt;ApplicationHibernate&gt; items = session.createQuery(criteriaQuery).getResultList();
+
+
+<span class="nc" id="L84">        return applicationHibernate.getId();</span>
+    }
+
+    @Override
+    public List&lt;Application&gt; getApplicationByStudentId(int studentId) {
+<span class="nc" id="L89">        Session session=sessionFactory.getCurrentSession();</span>
+
+
+
+
+
+<span class="nc" id="L95">        StudentHibernate studentHibernate=session.get(StudentHibernate.class,studentId);</span>
+
+<span class="nc" id="L97">        List&lt;Application&gt; items =</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">                new ArrayList&lt;&gt;(studentHibernate.getApplicationHibernates()).stream().sorted((a,b)-&gt;a.getCreationTime().before(b.getCreationTime())?-1:1).collect(Collectors.toList());</span>
+
+<span class="nc" id="L100">        return items;</span>
+
+    }
+
+    @Override
+    public List&lt;Application&gt; getPendingApplications() {
+
+<span class="nc" id="L107">        Session session=sessionFactory.getCurrentSession();</span>
+
+
+
+<span class="nc" id="L111">        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+        // result class
+<span class="nc" id="L113">        CriteriaQuery&lt;ApplicationHibernate&gt; criteriaQuery = criteriaBuilder.createQuery(ApplicationHibernate.class);</span>
+<span class="nc" id="L114">        criteriaQuery.from(ApplicationHibernate.class);</span>
+//        Root&lt;ApplicationHibernate&gt; aRoot=criteriaQuery.from(ApplicationHibernate.class);
+//        aRoot.join(&quot;Student&quot;, JoinType.INNER);
+//        aRoot.join(&quot;WebRegClass&quot;, JoinType.INNER);
+//
+//        criteriaQuery.multiselect(
+//                aRoot.get(&quot;id&quot;),
+//                aRoot.get(&quot;Student&quot;).get(&quot;id&quot;),
+//                aRoot.get(&quot;WebRegClass&quot;).get(&quot;id&quot;),
+//                aRoot.get(&quot;creation_time&quot;),
+//                aRoot.get(&quot;request&quot;),
+//                aRoot.get(&quot;status&quot;),
+//                aRoot.get(&quot;feedback&quot;)
+//        );
+//
+//
+//        Predicate predicateA = criteriaBuilder.equal(aRoot.get(&quot;status&quot;), &quot;Pending&quot;);
+
+//        criteriaQuery.where(predicateA);
+<span class="nc" id="L133">        List&lt;ApplicationHibernate&gt; items = session.createQuery(criteriaQuery).getResultList().stream().filter(c-&gt;c.getStatus().equals(&quot;Pending&quot;)).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        List&lt;Application&gt; items2=items.stream().sorted((a,b)-&gt;a.getCreationTime().before(b.getCreationTime())?-1:1).collect(Collectors.toList());</span>
+//        session.close();
+<span class="nc" id="L136">        return items2;</span>
+    }
+
+    @Override
+    public void rejectOrApproveByIdFeedback(String status, int applicationId, String f) {
+<span class="nc" id="L141">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L145">        ApplicationHibernate applicationHibernate=session.get(ApplicationHibernate.class,applicationId);</span>
+
+<span class="nc" id="L147">        applicationHibernate.setStatus(status);</span>
+
+<span class="nc" id="L149">        applicationHibernate.setFeedback(f);</span>
+
+
+<span class="nc" id="L152">        session.save(applicationHibernate);</span>
+//        transaction.commit();
+
+//        session.close();
+<span class="nc" id="L156">    }</span>
+
+    @Override
+    public String getRequestByApplicationId(int applicationId) {
+<span class="nc" id="L160">        Session session=sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L162">        ApplicationHibernate applicationHibernate=session.load(ApplicationHibernate.class,applicationId);</span>
+
+<span class="nc" id="L164">        String request=applicationHibernate.getRequest();</span>
+<span class="nc" id="L165">        return request;</span>
+    }
+
+    @Override
+    public int getStudentIdByApplicationId(int applicationId) {
+<span class="nc" id="L170">        Session session=sessionFactory.getCurrentSession();</span>
+
+<span class="nc" id="L172">        ApplicationHibernate applicationHibernate=session.load(ApplicationHibernate.class,applicationId);</span>
+<span class="nc" id="L173">        StudentHibernate studentHibernate=applicationHibernate.getStudentHibernate();</span>
+
+<span class="nc" id="L175">        return studentHibernate.getId();</span>
+    }
+
+    @Override
+    public int getClassIdByApplicationId(int applicationId) {
+<span class="nc" id="L180">        Session session=sessionFactory.getCurrentSession();</span>
+
+
+<span class="nc" id="L183">        ApplicationHibernate applicationHibernate=session.load(ApplicationHibernate.class,applicationId);</span>
+<span class="nc" id="L184">        WebRegClassHibernate weHibernate=applicationHibernate.getWebRegClassHibernate();</span>
+<span class="nc" id="L185">        return weHibernate.getId();</span>
+    }
+
+    @Override
+    public int createEnrollmentApplication(int studentId, int classId) {
+<span class="nc" id="L190">        Session session=sessionFactory.getCurrentSession();</span>
+
+
+
+<span class="nc" id="L194">        StudentHibernate studentHibernate=session.get(StudentHibernate.class,studentId);</span>
+<span class="nc" id="L195">        WebRegClassHibernate webRegClassHibernate=session.get(WebRegClassHibernate.class,classId);</span>
+
+
+<span class="nc" id="L198">        ApplicationHibernate applicationHibernate=new ApplicationHibernate();</span>
+
+<span class="nc" id="L200">        applicationHibernate.setStudentHibernate(studentHibernate);</span>
+<span class="nc" id="L201">        applicationHibernate.setWebRegClassHibernate(webRegClassHibernate);</span>
+<span class="nc" id="L202">        applicationHibernate.setCreationTime(new Timestamp(System.currentTimeMillis()));</span>
+<span class="nc" id="L203">        applicationHibernate.setStatus(&quot;Pending&quot;);</span>
+<span class="nc" id="L204">        applicationHibernate.setRequest(&quot;Withdraw&quot;);</span>
+<span class="nc" id="L205">        applicationHibernate.setFeedback(&quot;&quot;);</span>
+
+<span class="nc" id="L207">        session.save(applicationHibernate);</span>
+
+
+<span class="nc" id="L210">        return applicationHibernate.getId();</span>
+    }
+
+    @Override
+    public void withdrawApplication(int applicationId, int id) {
+<span class="nc" id="L215">        Session session=sessionFactory.getCurrentSession();</span>
+
+
+
+<span class="nc" id="L219">        ApplicationHibernate applicationHibernate=session.get(ApplicationHibernate.class,applicationId);</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        if(applicationHibernate==null) throw new UserServiceException(&quot;Application not found&quot;);</span>
+
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        if(applicationHibernate.getStudentHibernate().getId()!=id) throw new UserServiceException(&quot;The application is not yours!&quot;);</span>
+
+<span class="nc" id="L224">        applicationHibernate.setStatus(&quot;Withdraw&quot;);</span>
+
+<span class="nc" id="L226">        session.save(applicationHibernate);</span>
+
+<span class="nc" id="L228">    }</span>
+
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

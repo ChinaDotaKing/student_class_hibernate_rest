@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthenticationFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.security</a> &gt; <span class="el_source">AuthenticationFilter.java</span></div><h1>AuthenticationFilter.java</h1><pre class="source lang-java linenums">package org.example.security;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.catalina.User;
+import org.example.SpringApplicationContext;
+import org.example.domain.Lecture;
+import org.example.domain.Student;
+import org.example.domain.hibernate.StudentHibernate;
+import org.example.model.request.UserLoginRequestModel;
+import org.example.service.LoginService;
+import org.example.service.UserService;
+import org.example.service.UserServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import javax.servlet.FilterChain;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+
+public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+
+
+    @Autowired
+    LoginService loginService;
+
+    @Autowired
+    UserService userService;
+
+
+//    @Autowired
+//    CustomAuthenticationProvider customAuthenticationProvider;
+    private final AuthenticationManager authenticationManager;
+
+<span class="fc" id="L49">    public AuthenticationFilter(AuthenticationManager authenticationManager){</span>
+<span class="fc" id="L50">        this.authenticationManager=authenticationManager;</span>
+<span class="fc" id="L51">    }</span>
+
+
+
+    @Override
+    public Authentication attemptAuthentication(
+            HttpServletRequest req, HttpServletResponse resp
+
+            ) throws BadCredentialsException {
+        try {
+<span class="nc" id="L61">            UserLoginRequestModel creds</span>
+<span class="nc" id="L62">                    =new ObjectMapper().readValue(req.getInputStream(),</span>
+                        UserLoginRequestModel.class
+                    );
+
+
+
+<span class="nc" id="L68">            List&lt;GrantedAuthority&gt; grantedAuthorityList=new ArrayList&lt;&gt;();</span>
+////            Student student=userService.getUserByname(creds.getUsername());
+//            if( creds.getUsername().equals(&quot;admin&quot;)) grantedAuthorityList.add(new GrantedAuthority() {
+//                @Override
+//                public String getAuthority() {
+//                    return &quot;admin&quot;;
+//                }
+//            });
+//            customAuthenticationProvider
+<span class="nc" id="L77">            Authentication authentication= authenticationManager.authenticate(</span>
+                    new UsernamePasswordAuthenticationToken(
+<span class="nc" id="L79">                            creds.getUsername(),</span>
+<span class="nc" id="L80">                            creds.getPassword()</span>
+                            , grantedAuthorityList
+                    ));
+//            if(!(authentication.getPrincipal()==null)) throw  new BadCredentialsException(&quot;bad credentials&quot;);
+//            else
+
+<span class="nc" id="L86">                return authentication;</span>
+
+<span class="nc" id="L88">        } catch (IOException e) {</span>
+<span class="nc" id="L89">            throw new RuntimeException(e);</span>
+        }
+    }
+
+    @Override
+    protected void successfulAuthentication(HttpServletRequest req,
+                                            HttpServletResponse resp,
+                                            FilterChain chain,
+                                            Authentication auth
+                                            ){
+<span class="nc" id="L99">        String userName=((UserPrincipal) auth.getPrincipal() ).getUsername();</span>
+
+        try {
+<span class="nc" id="L102">            String token=Jwts.builder()</span>
+<span class="nc" id="L103">                    .setSubject(userName)</span>
+<span class="nc" id="L104">                    .setExpiration(new Date(System.currentTimeMillis()</span>
+                    +SecurityConstants.EXPIRATION_TIME
+<span class="nc" id="L106">                    )).signWith(SignatureAlgorithm.HS512,SecurityConstants.TOKEN_SECRET)</span>
+<span class="nc" id="L107">            .compact();</span>
+
+
+
+            //if(!userPrincipal) System.out.print(&quot;no user found&quot;);
+
+            //UserPrincipal userPrincipal=loginService.getUserByName(userName);
+<span class="nc" id="L114">            resp.addHeader(SecurityConstants.HEADER_STRING,SecurityConstants.TOKEN_PREFIX+token);</span>
+
+
+            //resp.addHeader(&quot;userId&quot;,String.valueOf(userPrincipal.get()));
+            //resp.addHeader(&quot;userName&quot;,userPrincipal.getUsername());
+
+<span class="nc" id="L120">        } catch (Exception e) {</span>
+<span class="nc" id="L121">            throw new RuntimeException(e);</span>
+<span class="nc" id="L122">        }</span>
+<span class="nc" id="L123">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrerequisiteHibernateDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.dao.hibernateDao</a> &gt; <span class="el_source">PrerequisiteHibernateDao.java</span></div><h1>PrerequisiteHibernateDao.java</h1><pre class="source lang-java linenums">package org.example.dao.hibernateDao;
+
+
+import lombok.Getter;
+import lombok.Setter;
+import org.example.dao.AbstractHibernateDao;
+import org.example.dao.InterF.ApplicationDao;
+import org.example.dao.InterF.PrerequisiteDao;
+import org.example.domain.Application;
+import org.example.domain.Course;
+import org.example.domain.Enrollment;
+import org.example.domain.Prerequisite;
+import org.example.domain.hibernate.CourseHibernate;
+import org.example.domain.hibernate.EnrollmentHibernate;
+import org.example.domain.hibernate.LectureHibernate;
+
+import org.example.domain.hibernate.PrerequisiteHibernate;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.criteria.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+
+@Getter
+@Setter
+@Repository(&quot;PrerequisiteDaoHibernate&quot;)
+@Transactional
+<span class="nc" id="L39">public class PrerequisiteHibernateDao extends AbstractHibernateDao&lt;PrerequisiteHibernate&gt; implements PrerequisiteDao {</span>
+
+
+    @Override
+    public Prerequisite getPrerequisiteById(int id) {
+<span class="nc" id="L44">        PrerequisiteHibernate prerequisteHibernate=sessionFactory.getCurrentSession().load(PrerequisiteHibernate.class,id);</span>
+<span class="nc" id="L45">        return  prerequisteHibernate;</span>
+    }
+
+    @Override
+    public List&lt;Prerequisite&gt; getPrerequisiteByCourse(Course course) {
+<span class="nc" id="L50">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+
+<span class="nc" id="L55">        CourseHibernate cour=session.get(CourseHibernate.class, course.getId());</span>
+
+<span class="nc" id="L57">        List&lt;Prerequisite&gt; pres=new ArrayList&lt;&gt;(cour.getPrerequisiteHibernates2());;//.stream().collect(Collectors.toList());</span>
+
+        //List&lt;Prerequisite&gt; items =cr.list();
+//        transaction.commit();
+//        session.close();
+<span class="nc" id="L62">        return pres;</span>
+    }
+
+    @Override
+    public int getPrereqByPre(Prerequisite prerequisite) {
+<span class="nc" id="L67">        PrerequisiteHibernate prerequisiteHibernate=sessionFactory.getCurrentSession().get(PrerequisiteHibernate.class,prerequisite.getId());</span>
+
+<span class="nc" id="L69">        return prerequisiteHibernate.getPre_req().getId();</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

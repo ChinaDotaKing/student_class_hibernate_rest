@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthorizationFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.security</a> &gt; <span class="el_source">AuthorizationFilter.java</span></div><h1>AuthorizationFilter.java</h1><pre class="source lang-java linenums">package org.example.security;
+
+import io.jsonwebtoken.Jwts;
+import org.apache.tomcat.util.http.parser.Authorization;
+import org.example.dao.hibernateDao.StudentHibernateDao;
+import org.example.domain.hibernate.StudentHibernate;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class AuthorizationFilter extends BasicAuthenticationFilter {
+
+    private final StudentHibernateDao studentHibernateDao;
+
+    public AuthorizationFilter(AuthenticationManager authenticationManager
+            ,StudentHibernateDao studentHibernateDao){
+<span class="fc" id="L24">        super(authenticationManager);</span>
+<span class="fc" id="L25">        this.studentHibernateDao=studentHibernateDao;</span>
+
+<span class="fc" id="L27">    }</span>
+
+
+
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest req,
+            HttpServletResponse resp,
+            FilterChain chain) throws IOException, ServletException {
+
+<span class="fc" id="L38">        String header =req.getHeader(SecurityConstants.HEADER_STRING);</span>
+
+<span class="pc bpc" id="L40" title="3 of 4 branches missed.">        if(header==null || !header.startsWith(SecurityConstants.TOKEN_PREFIX)){</span>
+<span class="fc" id="L41">            chain.doFilter(req,resp);</span>
+<span class="fc" id="L42">            return ;</span>
+        }
+
+<span class="nc" id="L45">        UsernamePasswordAuthenticationToken authentication</span>
+<span class="nc" id="L46">                =getAuthentication(req);</span>
+
+<span class="nc" id="L48">        SecurityContextHolder.getContext().setAuthentication(authentication);</span>
+
+<span class="nc" id="L50">        chain.doFilter(req,resp);</span>
+        //resp.setHeader(SecurityConstants.HEADER_STRING,req.getHeader(SecurityConstants.HEADER_STRING));
+<span class="nc" id="L52">    }</span>
+
+
+    private UsernamePasswordAuthenticationToken getAuthentication(
+            HttpServletRequest request){
+<span class="nc" id="L57">        String token =request.getHeader(SecurityConstants.HEADER_STRING);</span>
+
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if(token!=null){</span>
+<span class="nc" id="L60">            token=token.replace(SecurityConstants.TOKEN_PREFIX,&quot;&quot;);</span>
+
+<span class="nc" id="L62">            String user = Jwts.parser()</span>
+<span class="nc" id="L63">                    .setSigningKey(SecurityConstants.TOKEN_SECRET)</span>
+<span class="nc" id="L64">                    .parseClaimsJws(token)</span>
+<span class="nc" id="L65">                    .getBody()</span>
+<span class="nc" id="L66">                    .getSubject();</span>
+
+
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if(user !=null){</span>
+<span class="nc" id="L70">                StudentHibernate studentHibernate=studentHibernateDao.getUserByName(user);</span>
+<span class="nc" id="L71">                System.out.print(studentHibernate.getUsername());</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                if(studentHibernate ==null) return null;</span>
+
+<span class="nc" id="L74">                UserPrincipal userPrincipal=new UserPrincipal(studentHibernate);</span>
+
+<span class="nc" id="L76">                return new UsernamePasswordAuthenticationToken(</span>
+<span class="nc" id="L77">                        userPrincipal,null,userPrincipal.getAuthorities());</span>
+
+            }
+
+<span class="nc" id="L81">            return null;</span>
+        }
+
+<span class="nc" id="L84">        return null;</span>
+    }
+
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

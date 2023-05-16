@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserPrincipal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.security</a> &gt; <span class="el_source">UserPrincipal.java</span></div><h1>UserPrincipal.java</h1><pre class="source lang-java linenums">package org.example.security;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.example.domain.hibernate.StudentHibernate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import javax.persistence.Entity;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+
+@Entity
+@Getter
+<span class="nc" id="L17">@Setter</span>
+public class UserPrincipal implements UserDetails {
+
+
+<span class="nc" id="L21">    private StudentHibernate studentHibernate;</span>
+
+    private boolean accountNonExpired;
+    private boolean accountNonLocked;
+    private boolean credentialsNonExpired;
+    private boolean enabled;
+
+<span class="nc" id="L28">    private List&lt;GrantedAuthority&gt; authorities=new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L30">    public UserPrincipal(StudentHibernate userByName) {</span>
+<span class="nc" id="L31">        this.studentHibernate=userByName;</span>
+<span class="nc" id="L32">    }</span>
+
+    @Override
+    public Collection&lt;? extends GrantedAuthority&gt; getAuthorities() {
+<span class="nc" id="L36">        return this.authorities;</span>
+    }
+
+    @Override
+    public String getPassword() {
+<span class="nc" id="L41">        return studentHibernate.getEncrypted_password();</span>
+    }
+
+    @Override
+    public String getUsername() {
+<span class="nc" id="L46">        return studentHibernate.getUsername();</span>
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+<span class="nc" id="L51">        return true;</span>
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+<span class="nc" id="L56">        return true;</span>
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+<span class="nc" id="L61">        return true;</span>
+    }
+
+    @Override
+    public boolean isEnabled() {
+<span class="nc" id="L66">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

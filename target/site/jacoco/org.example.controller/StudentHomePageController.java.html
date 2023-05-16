@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StudentHomePageController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.controller</a> &gt; <span class="el_source">StudentHomePageController.java</span></div><h1>StudentHomePageController.java</h1><pre class="source lang-java linenums">package org.example.controller;
+
+import io.jsonwebtoken.Jwts;
+import lombok.Setter;
+import org.example.domain.*;
+import org.example.domain.hibernate.StudentHibernate;
+import org.example.exceptions.UserServiceException;
+import org.example.model.response.*;
+import org.example.model.result.ErrorMessages;
+import org.example.model.result.OperationStatusModel;
+import org.example.model.result.RequestOperationName;
+import org.example.model.result.RequestOperationStatus;
+import org.example.security.SecurityConstants;
+import org.example.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Controller;
+
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+<span class="nc" id="L27">@Setter</span>
+@RestController
+@RequestMapping(&quot;/&quot;)
+<span class="nc" id="L30">public class StudentHomePageController {</span>
+    @Autowired
+    UserService userService;
+
+
+    @GetMapping(&quot;/class/all/{page}/{limit}&quot;)
+    public List&lt;ClassRespEntity&gt; home(@PathVariable int page,@PathVariable int limit, HttpServletRequest request) {
+        //page+=1;
+<span class="nc" id="L38">        Student student=null;</span>
+<span class="nc" id="L39">        String token =request.getHeader(SecurityConstants.HEADER_STRING);</span>
+<span class="nc" id="L40">        System.out.print(token);</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if(token!=null){</span>
+<span class="nc" id="L42">            token=token.replace(SecurityConstants.TOKEN_PREFIX,&quot;&quot;);</span>
+
+<span class="nc" id="L44">            String user = Jwts.parser()</span>
+<span class="nc" id="L45">                    .setSigningKey(SecurityConstants.TOKEN_SECRET)</span>
+<span class="nc" id="L46">                    .parseClaimsJws(token)</span>
+<span class="nc" id="L47">                    .getBody()</span>
+<span class="nc" id="L48">                    .getSubject();</span>
+
+
+<span class="nc bnc" id="L51" title="All 2 branches missed.">            if(user !=null)</span>
+<span class="nc" id="L52">                student= userService.getUserByname(user);</span>
+        }
+
+
+
+<span class="nc" id="L57">        int totalPages=userService.getTotalPages(student.getId(),limit);</span>
+<span class="nc" id="L58">        System.out.print(totalPages);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if(page&lt;0) page=1;</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        else if(page&gt;=totalPages) page=totalPages;</span>
+<span class="nc" id="L61">        else page=page+1;</span>
+
+<span class="nc" id="L63">            List&lt;Enrollment&gt; enrollments=userService.getEnrollmentByStudentId( student.getId() );</span>
+
+<span class="nc" id="L65">            List&lt;ClassRespEntity&gt; classRespEntities=userService.getClassRespEntitiesFromEnrollments(enrollments);</span>
+
+
+
+
+<span class="nc" id="L70">        return classRespEntities.subList((page-1)*limit,Math.min((page)*limit,classRespEntities.size()));</span>
+    }
+
+
+    @GetMapping(&quot;/class/all&quot;)
+    public List&lt;StudentClassManaResp&gt; class_management_Page(HttpServletRequest request) {
+
+//        System.out.print(userService.checkIfStudentPassCourseById(student,2));
+//        System.out.print(student.getId());
+
+<span class="nc" id="L80">        Student student=null;</span>
+<span class="nc" id="L81">        String token =request.getHeader(SecurityConstants.HEADER_STRING);</span>
+<span class="nc" id="L82">        System.out.print(token);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if(token!=null){</span>
+<span class="nc" id="L84">            token=token.replace(SecurityConstants.TOKEN_PREFIX,&quot;&quot;);</span>
+
+<span class="nc" id="L86">            String user = Jwts.parser()</span>
+<span class="nc" id="L87">                    .setSigningKey(SecurityConstants.TOKEN_SECRET)</span>
+<span class="nc" id="L88">                    .parseClaimsJws(token)</span>
+<span class="nc" id="L89">                    .getBody()</span>
+<span class="nc" id="L90">                    .getSubject();</span>
+
+
+<span class="nc bnc" id="L93" title="All 2 branches missed.">            if(user !=null)</span>
+<span class="nc" id="L94">                student= userService.getUserByname(user);</span>
+        }
+
+<span class="nc" id="L97">        List&lt;StudentClassManaResp&gt; studentClassManaResps=userService.getStudentClassManaResp(student.getId());</span>
+
+<span class="nc" id="L99">        return studentClassManaResps;</span>
+    }
+
+
+    @GetMapping(&quot;/class/{classId}&quot;)
+    public ClassDetailRespModel classPage(@PathVariable int classId,
+                            HttpServletRequest request) {
+
+
+
+<span class="nc" id="L109">        Optional&lt;WebRegClass&gt; theClass = Optional.ofNullable(userService.getWebRegClassById(classId));</span>
+<span class="nc" id="L110">        ClassDetailRespModel classDetailRespModel=null;</span>
+<span class="nc" id="L111">        Student student=null;</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (theClass.isPresent()) {</span>
+
+        try{
+<span class="nc" id="L115">            WebRegClass theWebRegClass = theClass.get();</span>
+<span class="nc" id="L116">            classDetailRespModel=userService.getClassDetailByClass(theWebRegClass);</span>
+<span class="nc" id="L117">            String token =request.getHeader(SecurityConstants.HEADER_STRING);</span>
+
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            if(token!=null){</span>
+<span class="nc" id="L120">                token=token.replace(SecurityConstants.TOKEN_PREFIX,&quot;&quot;);</span>
+
+<span class="nc" id="L122">                String user = Jwts.parser()</span>
+<span class="nc" id="L123">                        .setSigningKey(SecurityConstants.TOKEN_SECRET)</span>
+<span class="nc" id="L124">                        .parseClaimsJws(token)</span>
+<span class="nc" id="L125">                        .getBody()</span>
+<span class="nc" id="L126">                        .getSubject();</span>
+
+
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                if(user !=null)</span>
+<span class="nc" id="L130">                    student= userService.getUserByname(user);</span>
+
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                if(!student.is_admin()) classDetailRespModel.setCurEnrolledStudents(null);</span>
+            }
+
+
+        }
+<span class="nc" id="L137">        catch (NullPointerException e){</span>
+<span class="nc" id="L138">            e.printStackTrace();</span>
+<span class="nc" id="L139">        }</span>
+
+        }
+
+<span class="nc" id="L143">        else throw new UserServiceException(ErrorMessages.CLASS_NOT_FOUNT.getErrorMessage());</span>
+
+<span class="nc" id="L145">        return classDetailRespModel;</span>
+
+
+    }
+
+    @PostMapping(&quot;/class/{classId}/{button}&quot;)
+    public Object classPagePost(@PathVariable int classId,
+                            @PathVariable String button,
+                            HttpServletRequest request) {
+
+<span class="nc" id="L155">        Student student=null;</span>
+        WebRegClass theClass;
+
+
+<span class="nc" id="L159">        String token =request.getHeader(SecurityConstants.HEADER_STRING);</span>
+
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if(token!=null){</span>
+<span class="nc" id="L162">            token=token.replace(SecurityConstants.TOKEN_PREFIX,&quot;&quot;);</span>
+
+<span class="nc" id="L164">            String user = Jwts.parser()</span>
+<span class="nc" id="L165">                    .setSigningKey(SecurityConstants.TOKEN_SECRET)</span>
+<span class="nc" id="L166">                    .parseClaimsJws(token)</span>
+<span class="nc" id="L167">                    .getBody()</span>
+<span class="nc" id="L168">                    .getSubject();</span>
+
+
+<span class="nc bnc" id="L171" title="All 2 branches missed.">            if(user !=null)</span>
+<span class="nc" id="L172">                student= userService.getUserByname(user);</span>
+        }
+
+
+<span class="nc" id="L176">        theClass=userService.getWebRegClassById(classId);</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        if(theClass==null) throw new UserServiceException(ErrorMessages.CLASS_NOT_FOUNT.getErrorMessage());</span>
+<span class="nc" id="L178">        OperationStatusModel returnValue = new OperationStatusModel();</span>
+
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (button.equals(&quot;add&quot;)) {</span>
+
+<span class="nc" id="L182">            returnValue.setOperationName(RequestOperationName.ADD_CLASS.name());</span>
+
+
+
+
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            if(!userService.checkIfStudentEligible(student,theClass)) {</span>
+<span class="nc" id="L188">                returnValue.setOperationResult(RequestOperationStatus.ERROR.name());</span>
+<span class="nc" id="L189">                return returnValue;</span>
+            }
+
+<span class="nc bnc" id="L192" title="All 2 branches missed.">            if(!userService.checkIfClassIsFull(theClass)) {</span>
+<span class="nc" id="L193">            userService.addEnrollment(student.getId(),theClass.getId());</span>
+<span class="nc" id="L194">                returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());</span>
+
+<span class="nc" id="L196">                return returnValue;</span>
+            }
+            else
+<span class="nc" id="L199">                button = &quot;apply&quot;;</span>
+
+        }
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        else if (button.equals(&quot;drop&quot;)) {</span>
+
+<span class="nc" id="L204">            returnValue.setOperationName(RequestOperationName.DROP_CLASS.name());</span>
+
+
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            if(!userService.checkIfDroppable(student.getId(),theClass)) {</span>
+<span class="nc" id="L208">                returnValue.setOperationResult(RequestOperationStatus.ERROR.name());</span>
+<span class="nc" id="L209">                return returnValue;</span>
+            }
+            else {
+<span class="nc" id="L212">                userService.dropEnrollments(student.getId(),classId);</span>
+<span class="nc" id="L213">                returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());</span>
+
+<span class="nc" id="L215">                return returnValue;</span>
+            }
+        }
+<span class="nc bnc" id="L218" title="All 2 branches missed.">        else if (button.equals(&quot;withdraw&quot;)) {</span>
+
+<span class="nc" id="L220">            returnValue.setOperationName(RequestOperationName.WITHDRAW_CLASS.name());</span>
+<span class="nc" id="L221">            List&lt;Application&gt; application=userService.getApplicationsByStudentId(student.getId());</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">            for(Application application1:application)</span>
+            {
+<span class="nc bnc" id="L224" title="All 4 branches missed.">                if(application1.getRequest().equals(&quot;Withdraw&quot;)&amp;&amp;application1.getStatus().equals(&quot;ongoing&quot;) )</span>
+<span class="nc" id="L225">                    throw new UserServiceException(&quot;The withdraw application is ongoing&quot;);</span>
+<span class="nc bnc" id="L226" title="All 4 branches missed.">                if(application1.getRequest().equals(&quot;Withdraw&quot;)&amp;&amp;application1.getStatus().equals(&quot;Reject&quot;) )</span>
+<span class="nc" id="L227">                    throw new UserServiceException(&quot;The withdraw application has been rejected&quot;);</span>
+<span class="nc" id="L228">            }</span>
+
+<span class="nc bnc" id="L230" title="All 2 branches missed.">            if(!userService.checkIfWithdrawable(student.getId(),theClass)) {</span>
+<span class="nc" id="L231">                returnValue.setOperationResult(RequestOperationStatus.ERROR.name());</span>
+<span class="nc" id="L232">                return returnValue;</span>
+            }
+            else {
+<span class="nc" id="L235">                int id=userService.createEnrollmentApplication(student.getId(),theClass.getId());</span>
+                //create withdraw application
+<span class="nc" id="L237">                AdminApplicationResp adminApplicationResp=userService.getAdminApplicationRespByApplicationId(id);</span>
+<span class="nc" id="L238">                return adminApplicationResp;</span>
+            }
+        }
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        if (button.equals(&quot;apply&quot;)) {</span>
+
+<span class="nc" id="L243">            returnValue.setOperationName(RequestOperationName.APPLY.name());</span>
+
+<span class="nc" id="L245">            List&lt;Application&gt; application=userService.getApplicationsByStudentId(student.getId());</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">            for(Application application1:application)</span>
+            {
+<span class="nc bnc" id="L248" title="All 4 branches missed.">                if(application1.getRequest().equals(&quot;Add&quot;)&amp;&amp;application1.getStatus().equals(&quot;ongoing&quot;) )</span>
+<span class="nc" id="L249">                    throw new UserServiceException(&quot;The Add application is ongoing&quot;);</span>
+<span class="nc bnc" id="L250" title="All 4 branches missed.">                if(application1.getRequest().equals(&quot;Add&quot;)&amp;&amp;application1.getStatus().equals(&quot;Reject&quot;) )</span>
+<span class="nc" id="L251">                    throw new UserServiceException(&quot;The Add application has been rejected&quot;);</span>
+<span class="nc" id="L252">            }</span>
+<span class="nc" id="L253">                int id2=userService.createApplicationByStudentClassId(student.getId(),classId);</span>
+<span class="nc" id="L254">                AdminApplicationResp applicationResp=userService.getAdminApplicationRespByApplicationId(id2);</span>
+
+<span class="nc" id="L256">            return applicationResp;</span>
+
+        }
+
+<span class="nc" id="L260">        return button;</span>
+    }
+
+
+    @GetMapping(&quot;/application/all&quot;)
+    public  List&lt;ApplicationResp&gt; applicationManagement(
+                                        HttpServletRequest request) {
+<span class="nc" id="L267">        String token =request.getHeader(SecurityConstants.HEADER_STRING);</span>
+
+<span class="nc" id="L269">        Student student=null;</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        if(token!=null){</span>
+<span class="nc" id="L271">            token=token.replace(SecurityConstants.TOKEN_PREFIX,&quot;&quot;);</span>
+
+<span class="nc" id="L273">            String user = Jwts.parser()</span>
+<span class="nc" id="L274">                    .setSigningKey(SecurityConstants.TOKEN_SECRET)</span>
+<span class="nc" id="L275">                    .parseClaimsJws(token)</span>
+<span class="nc" id="L276">                    .getBody()</span>
+<span class="nc" id="L277">                    .getSubject();</span>
+
+
+<span class="nc bnc" id="L280" title="All 2 branches missed.">            if(user !=null)</span>
+<span class="nc" id="L281">                student= userService.getUserByname(user);</span>
+        }
+
+<span class="nc" id="L284">        List&lt;ApplicationResp&gt; applicationResps=userService.getApplicationRespByStudentId(student.getId());</span>
+
+
+
+
+
+
+
+<span class="nc" id="L292">        return applicationResps;</span>
+
+    }
+
+
+    @DeleteMapping(&quot;/application/{applicationId}&quot;)
+    public OperationStatusModel applicationdelete( @PathVariable int applicationId, HttpServletRequest request){
+
+<span class="nc" id="L300">        String token =request.getHeader(SecurityConstants.HEADER_STRING);</span>
+
+<span class="nc" id="L302">        Student student=null;</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">        if(token!=null){</span>
+<span class="nc" id="L304">            token=token.replace(SecurityConstants.TOKEN_PREFIX,&quot;&quot;);</span>
+
+<span class="nc" id="L306">            String user = Jwts.parser()</span>
+<span class="nc" id="L307">                    .setSigningKey(SecurityConstants.TOKEN_SECRET)</span>
+<span class="nc" id="L308">                    .parseClaimsJws(token)</span>
+<span class="nc" id="L309">                    .getBody()</span>
+<span class="nc" id="L310">                    .getSubject();</span>
+
+
+<span class="nc bnc" id="L313" title="All 2 branches missed.">            if(user !=null)</span>
+<span class="nc" id="L314">                student= userService.getUserByname(user);</span>
+        }
+
+
+
+<span class="nc" id="L319">                userService.withdrawApplication(applicationId,student.getId());</span>
+<span class="nc" id="L320">        OperationStatusModel returnValue = new OperationStatusModel();</span>
+<span class="nc" id="L321">        returnValue.setOperationName(RequestOperationName.CANCEL_APPLICATION.name());</span>
+<span class="nc" id="L322">        returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());</span>
+<span class="nc" id="L323">        return returnValue;</span>
+        }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

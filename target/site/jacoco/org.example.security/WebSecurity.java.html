@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebSecurity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.security</a> &gt; <span class="el_source">WebSecurity.java</span></div><h1>WebSecurity.java</h1><pre class="source lang-java linenums">package org.example.security;
+
+import org.example.dao.hibernateDao.StudentHibernateDao;
+import org.example.service.LoginService;
+import org.example.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+@Configuration
+@EnableGlobalMethodSecurity(securedEnabled=true,prePostEnabled=true)
+@EnableWebSecurity
+<span class="fc" id="L23">public class WebSecurity extends WebSecurityConfigurerAdapter {</span>
+
+        @Autowired
+        LoginService loginService;
+
+        @Autowired
+        BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    CustomAuthenticationProvider customAuthenticationProvider;
+        @Autowired
+        StudentHibernateDao studentHibernateDao;
+
+   //private UserDetailsService userDetailsService;
+
+    // inject user-defined user detail service
+
+
+
+
+
+        @Override
+        protected  void configure(HttpSecurity http) throws Exception{
+<span class="fc" id="L45">            http.csrf().disable()</span>
+<span class="fc" id="L46">                    .authorizeRequests()</span>
+<span class="fc" id="L47">                    .antMatchers(HttpMethod.POST,&quot;/login&quot;)</span>
+<span class="fc" id="L48">                    .permitAll()</span>
+<span class="fc" id="L49">                    .antMatchers(HttpMethod.POST,&quot;/signup&quot;)</span>
+<span class="fc" id="L50">                    .permitAll()</span>
+//                    .antMatchers(HttpMethod.GET,&quot;/admin/**&quot;)
+//                    .hasAuthority(&quot;admin&quot;)
+<span class="fc" id="L53">                    .antMatchers(HttpMethod.GET,&quot;/actuator/**&quot;)</span>
+<span class="fc" id="L54">                    .permitAll()</span>
+<span class="fc" id="L55">                    .antMatchers(&quot;/v2/api-docs&quot;,&quot;/configuration/**&quot;,&quot;/swagger*/**&quot;,&quot;/webjars/**&quot;,&quot;/v3/api-docs/**&quot;)</span>
+<span class="fc" id="L56">                    .permitAll()</span>
+<span class="fc" id="L57">                    .anyRequest().authenticated().and()</span>
+<span class="fc" id="L58">                    .addFilter(getAuthenticationFilter())</span>
+<span class="fc" id="L59">                    .addFilter(new AuthorizationFilter(authenticationManager(),studentHibernateDao ) )</span>
+<span class="fc" id="L60">                    .sessionManagement()</span>
+<span class="fc" id="L61">                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)</span>
+            ;
+
+//            http.authorizeRequests()
+//                    .antMatchers(HttpMethod.PUT,&quot;/login&quot;)
+//                    .denyAll()
+//                    .antMatchers(HttpMethod.DELETE,&quot;/login&quot;)
+//                    .denyAll()
+//                    .antMatchers(HttpMethod.GET,&quot;/login&quot;)
+//                    .denyAll();
+<span class="fc" id="L71">        }</span>
+
+
+        @Override
+        public void configure(AuthenticationManagerBuilder auth) throws Exception{
+<span class="fc" id="L76">            auth.userDetailsService(loginService).passwordEncoder(bCryptPasswordEncoder);</span>
+           // auth.authenticationProvider(customAuthenticationProvider);
+<span class="fc" id="L78">        }</span>
+
+        public AuthenticationFilter getAuthenticationFilter() throws Exception{
+<span class="fc" id="L81">            final AuthenticationFilter filter = new AuthenticationFilter(authenticationManager());</span>
+<span class="fc" id="L82">            filter.setFilterProcessesUrl(&quot;/login&quot;);</span>
+
+<span class="fc" id="L84">            return filter;</span>
+        }
+
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HibernateConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.config</a> &gt; <span class="el_source">HibernateConfig.java</span></div><h1>HibernateConfig.java</h1><pre class="source lang-java linenums">package org.example.config;
+
+import java.util.Properties;
+import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+@Configuration
+@EnableTransactionManagement
+public class HibernateConfig {
+    @Autowired
+    HibernateProperty hibernateProperty;
+
+<span class="nc" id="L20">    public HibernateConfig() {</span>
+<span class="nc" id="L21">    }</span>
+
+    @Bean
+    protected LocalSessionFactoryBean sessionFactory() {
+<span class="nc" id="L25">        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();</span>
+<span class="nc" id="L26">        sessionFactory.setDataSource(this.dataSource());</span>
+<span class="nc" id="L27">        sessionFactory.setPackagesToScan(new String[]{&quot;org.example.domain&quot;});</span>
+<span class="nc" id="L28">        sessionFactory.setHibernateProperties(this.hibernateProperties());</span>
+<span class="nc" id="L29">        return sessionFactory;</span>
+    }
+
+    @Bean
+    public DataSource dataSource() {
+<span class="nc" id="L34">        DriverManagerDataSource dataSource = new DriverManagerDataSource();</span>
+<span class="nc" id="L35">        dataSource.setDriverClassName(this.hibernateProperty.getDriver());</span>
+<span class="nc" id="L36">        dataSource.setUrl(this.hibernateProperty.getUrl());</span>
+<span class="nc" id="L37">        dataSource.setUsername(this.hibernateProperty.getUsername());</span>
+<span class="nc" id="L38">        dataSource.setPassword(this.hibernateProperty.getPassword());</span>
+<span class="nc" id="L39">        return dataSource;</span>
+    }
+
+    @Bean
+    public PlatformTransactionManager hibernateTransactionManager() {
+<span class="nc" id="L44">        HibernateTransactionManager transactionManager = new HibernateTransactionManager();</span>
+<span class="nc" id="L45">        transactionManager.setSessionFactory(this.sessionFactory().getObject());</span>
+<span class="nc" id="L46">        return transactionManager;</span>
+    }
+
+    private Properties hibernateProperties() {
+<span class="nc" id="L50">        Properties hibernateProperties = new Properties();</span>
+<span class="nc" id="L51">        hibernateProperties.setProperty(&quot;hibernate.show_sql&quot;, this.hibernateProperty.getShowsql());</span>
+<span class="nc" id="L52">        hibernateProperties.setProperty(&quot;hibernate.dialect&quot;, this.hibernateProperty.getDialect());</span>
+<span class="nc" id="L53">        return hibernateProperties;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

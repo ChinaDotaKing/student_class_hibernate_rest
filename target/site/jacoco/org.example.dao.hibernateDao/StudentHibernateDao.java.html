@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StudentHibernateDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.dao.hibernateDao</a> &gt; <span class="el_source">StudentHibernateDao.java</span></div><h1>StudentHibernateDao.java</h1><pre class="source lang-java linenums">package org.example.dao.hibernateDao;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.example.dao.AbstractHibernateDao;
+import org.example.dao.InterF.StudentDao;
+import org.example.domain.Application;
+import org.example.domain.Enrollment;
+import org.example.domain.Student;
+import org.example.domain.hibernate.*;
+import org.example.exceptions.UserServiceException;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.criteria.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Getter
+<span class="nc" id="L26">@Setter</span>
+@Repository(&quot;StudentDaoHibernate&quot;)
+@Transactional
+<span class="nc" id="L29">public class StudentHibernateDao extends AbstractHibernateDao&lt;StudentHibernate&gt; implements StudentDao {</span>
+    @Autowired
+<span class="nc" id="L31">    BCryptPasswordEncoder bCryptPasswordEncoder;</span>
+
+
+    public Student getById(int id){
+<span class="nc" id="L35">        Session session=sessionFactory.getCurrentSession();</span>
+<span class="nc" id="L36">        StudentHibernate studentHibernate=session.get(StudentHibernate.class,id);</span>
+<span class="nc" id="L37">        return studentHibernate;</span>
+    }
+    @Override
+    public void createNewStudent(StudentHibernate student) {
+<span class="nc" id="L41">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+
+<span class="nc" id="L46">        StudentHibernate studentHibernate=new StudentHibernate();</span>
+
+
+<span class="nc" id="L49">        DepartmentHibernate departmentHibernate=session.get(DepartmentHibernate.class,student.getDept_id());</span>
+
+<span class="nc" id="L51">        studentHibernate.setUsername(student.getUsername());</span>
+<span class="nc" id="L52">        studentHibernate.setEncrypted_password(student.getEncrypted_password());</span>
+
+<span class="nc" id="L54">        studentHibernate.setEmail(student.getEmail());</span>
+<span class="nc" id="L55">        studentHibernate.setFirstName(student.getFirstName());</span>
+<span class="nc" id="L56">        studentHibernate.setLastName(student.getLastName());</span>
+<span class="nc" id="L57">        studentHibernate.setDepartmentHibernate(departmentHibernate);</span>
+<span class="nc" id="L58">        studentHibernate.set_active(true);</span>
+<span class="nc" id="L59">        studentHibernate.set_admin(false);</span>
+
+<span class="nc" id="L61">        session.save(studentHibernate);</span>
+
+//        transaction.commit();
+//        session.close();
+<span class="nc" id="L65">    }</span>
+
+    @Override
+    public List&lt;Student&gt; getAllUsers() {
+<span class="nc" id="L69">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L73">        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+        // result class
+<span class="nc" id="L75">        CriteriaQuery&lt;StudentHibernate&gt; criteriaQuery = criteriaBuilder.createQuery(StudentHibernate.class);</span>
+<span class="nc" id="L76">        criteriaQuery.from(StudentHibernate.class);</span>
+
+
+
+
+<span class="nc" id="L81">        List&lt;StudentHibernate&gt; items = session.createQuery(criteriaQuery).getResultList();</span>
+<span class="nc" id="L82">        List&lt;Student&gt; res=items.stream().collect(Collectors.toList());</span>
+//        session.close();
+
+<span class="nc" id="L85">        return res;</span>
+    }
+
+
+    @Cacheable(&quot;students&quot;)
+    @Override
+    public List&lt;Student&gt; getAllStudents() {
+<span class="nc" id="L92">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L96">        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+        // result class
+<span class="nc" id="L98">        CriteriaQuery&lt;StudentHibernate&gt; criteriaQuery = criteriaBuilder.createQuery(StudentHibernate.class);</span>
+<span class="nc" id="L99">        criteriaQuery.from(StudentHibernate.class);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        List&lt;Student&gt; items = session.createQuery(criteriaQuery).getResultList().stream().filter(c-&gt;!c.is_admin()).collect(Collectors.toList());</span>
+
+//        session.close();
+<span class="nc" id="L103">        return items;</span>
+    }
+
+    @Override
+    public Optional&lt;Student&gt; validateLogin(String username, String password) {
+<span class="nc" id="L108">        return getAllUsers().stream()</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                .filter(a -&gt; a.getUsername().equals(username)</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                        &amp;&amp; bCryptPasswordEncoder.matches(password,a.getEncrypted_password()) )</span>
+<span class="nc" id="L111">                .findAny();</span>
+    }
+
+    @Override
+    public Student getStudentById(int studentId) {
+<span class="nc" id="L116">        StudentHibernate studentHibernate=sessionFactory.getCurrentSession().get(StudentHibernate.class,studentId);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if(studentHibernate==null) throw new UserServiceException(&quot;Student not found!!&quot;);</span>
+<span class="nc" id="L118">        return  studentHibernate;</span>
+    }
+
+    @Override
+    public void activateStudentById(int studentId) {
+<span class="nc" id="L123">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L127">        StudentHibernate studentHibernate=session.get(StudentHibernate.class,studentId);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if(studentHibernate==null) throw new UserServiceException(&quot;Student not found!!&quot;);</span>
+<span class="nc" id="L129">        studentHibernate.set_active(true);</span>
+
+<span class="nc" id="L131">        session.update(studentHibernate);</span>
+//        transaction.commit();
+
+//        session.close();
+<span class="nc" id="L135">    }</span>
+
+    @Override
+    public void deactivateStudentById(int studentId) {
+<span class="nc" id="L139">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L143">        StudentHibernate studentHibernate=session.get(StudentHibernate.class,studentId);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if(studentHibernate==null) throw new UserServiceException(&quot;Student not found!!&quot;);</span>
+<span class="nc" id="L145">        studentHibernate.set_active(false);</span>
+
+<span class="nc" id="L147">        session.update(studentHibernate);</span>
+//        transaction.commit();
+
+//        session.close();
+<span class="nc" id="L151">    }</span>
+
+//    @Override
+//    public int getTotalPagesAdmin(int limit) {
+//        List&lt;Student&gt; students=getAllStudents();
+//
+//        if(students==null) return 0;
+//        if(students.size()%limit==0) return students.size()/limit;
+//        else return students.size()/limit+1;
+//    }
+
+    @Override
+    public List&lt;Student&gt; getStudentsByPageLimit(int page, int limit) {
+//        Session session=sessionFactory.getCurrentSession();
+//
+//        Transaction transaction = session.beginTransaction();
+//
+//        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+//        // result class
+//        CriteriaQuery&lt;Student&gt; criteriaQuery = criteriaBuilder.createQuery(Student.class);
+//
+//        Root&lt;StudentHibernate&gt; aRoot=criteriaQuery.from(StudentHibernate.class);
+//        aRoot.join(&quot;DepartmentHibernate&quot;, JoinType.INNER);
+//
+//        criteriaQuery.multiselect(
+//                aRoot.get(&quot;id&quot;),
+//                aRoot.get(&quot;username&quot;),
+//                aRoot.get(&quot;encrypted_password&quot;),
+//                aRoot.get(&quot;email&quot;),
+//                aRoot.get(&quot;first_name&quot;),
+//                aRoot.get(&quot;last_name&quot;),
+//                aRoot.get(&quot;DepartmentHibernate&quot;).get(&quot;id&quot;),
+//                aRoot.get(&quot;is_active&quot;),
+//                aRoot.get(&quot;is_admin&quot;)
+//        );
+//
+//
+//        Predicate predicateA=criteriaBuilder.equal(aRoot.get(&quot;is_admin&quot;), false);
+//        criteriaQuery.where(predicateA);
+<span class="nc" id="L190">        List&lt;Student&gt; items = getAllStudents();//session.createQuery(criteriaQuery).setFirstResult((page-1)*limit).setMaxResults(limit).getResultList();</span>
+
+
+<span class="nc" id="L193">        return items.subList((page-1)*limit,Math.min((page-1)*limit,items.size()));</span>
+    }
+
+    @Override
+    public Student getStudentByEnrollment(Enrollment c) {
+
+<span class="nc" id="L199">        EnrollmentHibernate enrollmentHibernate=sessionFactory.getCurrentSession().get(EnrollmentHibernate.class,c.getId());</span>
+
+<span class="nc" id="L201">        return enrollmentHibernate.getStudentHibernate();</span>
+    }
+
+    @Override
+    public Student getStudentByApplication(Application c) {
+<span class="nc" id="L206">        ApplicationHibernate applicationHibernateHibernate=sessionFactory.getCurrentSession().get(ApplicationHibernate.class,c.getId());</span>
+
+<span class="nc" id="L208">        return applicationHibernateHibernate.getStudentHibernate();</span>
+    }
+
+    @Override
+    public StudentHibernate getUserByName(String userName) {
+<span class="nc" id="L213">        Session session=sessionFactory.getCurrentSession();</span>
+
+//        Transaction transaction = session.beginTransaction();
+
+<span class="nc" id="L217">        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();</span>
+        // result class
+<span class="nc" id="L219">        CriteriaQuery&lt;StudentHibernate&gt; criteriaQuery = criteriaBuilder.createQuery(StudentHibernate.class);</span>
+<span class="nc" id="L220">        criteriaQuery.from(StudentHibernate.class);</span>
+<span class="nc" id="L221">        List&lt;StudentHibernate&gt; items = session.createQuery(criteriaQuery).getResultList().stream().filter(c-&gt;c.getUsername().equals(userName)).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        if(items.size()==0) System.out.print(items.get(0).getUsername());</span>
+
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        return items.size()==0?null: items.get(0);</span>
+    }
+
+
+//    @Override
+//    public BCryptPasswordEncoder getBCryptPasswordEncoder() {
+//        return null;
+//    }
+
+//    @Override
+//    public PWEncoder getPwEncoder() {
+//        return null;
+//    }
+
+
+//    @Override
+//    public void setBCryptPasswordEncoder(BCryptPasswordEncoder bCryptPasswordEncoder) {
+//
+//    }
+
+//    @Override
+//    public void setPwEncoder(PWEncoder pwEncoder) {
+//
+//    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

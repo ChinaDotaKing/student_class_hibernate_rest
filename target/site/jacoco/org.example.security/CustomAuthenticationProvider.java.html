@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomAuthenticationProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.security</a> &gt; <span class="el_source">CustomAuthenticationProvider.java</span></div><h1>CustomAuthenticationProvider.java</h1><pre class="source lang-java linenums">package org.example.security;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.example.dao.hibernateDao.StudentHibernateDao;
+import org.example.domain.Student;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+
+@Component
+<span class="nc" id="L21">public class CustomAuthenticationProvider implements AuthenticationProvider{</span>
+
+    @Autowired
+    private StudentHibernateDao studentHibernateDao;
+
+    @Autowired
+    private PasswordEncoder pEncoder;
+
+    @Override
+    public  Authentication authenticate(Authentication authentication) throws AuthenticationException {
+<span class="nc" id="L31">        String username = authentication.getName();</span>
+<span class="nc" id="L32">        String password = authentication.getCredentials().toString();</span>
+<span class="nc" id="L33">        Student student = studentHibernateDao.getUserByName(username);</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (student!=null) {</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">            if (pEncoder.matches(password, student.getEncrypted_password())) {</span>
+<span class="nc" id="L36">                List&lt;GrantedAuthority&gt; authorities = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">                authorities.add(new SimpleGrantedAuthority(student.is_admin()?&quot;admin&quot;:&quot;user&quot;));</span>
+<span class="nc" id="L38">                return new UsernamePasswordAuthenticationToken(username, password, authorities);</span>
+            }else  {
+<span class="nc" id="L40">                throw new BadCredentialsException(&quot;Invalid password&quot;);</span>
+            }
+        } else {
+<span class="nc" id="L43">            throw new BadCredentialsException(&quot;No user registered with this details&quot;);</span>
+        }
+    }
+
+    @Override
+    public boolean supports(Class&lt;?&gt; authentication) {
+<span class="nc" id="L49">        return authentication.equals(UsernamePasswordAuthenticationToken.class);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

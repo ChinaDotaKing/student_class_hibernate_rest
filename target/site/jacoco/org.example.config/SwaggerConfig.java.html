@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SwaggerConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.config</a> &gt; <span class="el_source">SwaggerConfig.java</span></div><h1>SwaggerConfig.java</h1><pre class="source lang-java linenums">package org.example.config;
+
+import java.util.*;
+
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.CorsEndpointProperties;
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
+import org.springframework.boot.actuate.autoconfigure.web.server.ManagementPortType;
+import org.springframework.boot.actuate.endpoint.ExposableEndpoint;
+import org.springframework.boot.actuate.endpoint.web.*;
+import org.springframework.boot.actuate.endpoint.web.annotation.ControllerEndpointsSupplier;
+import org.springframework.boot.actuate.endpoint.web.annotation.ServletEndpointsSupplier;
+import org.springframework.boot.actuate.endpoint.web.servlet.WebMvcEndpointHandlerMapping;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import org.springframework.core.env.Environment;
+import org.springframework.plugin.core.SimplePluginRegistry;
+
+
+import org.springframework.util.StringUtils;
+import springfox.documentation.RequestHandler;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
+import springfox.documentation.service.VendorExtension;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+//import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
+
+@Configuration
+@EnableSwagger2
+<span class="nc" id="L35">public class SwaggerConfig {</span>
+	
+
+
+				
+	
+		
+		
+		@Bean
+		public Docket apiDocket() {
+<span class="nc" id="L45">			Docket docket = new Docket(DocumentationType.SWAGGER_2)</span>
+<span class="nc" id="L46">					.select()</span>
+<span class="nc" id="L47">					.apis(RequestHandlerSelectors.any())</span>
+<span class="nc" id="L48">					.paths(PathSelectors.any())</span>
+<span class="nc" id="L49">					.build();</span>
+
+<span class="nc" id="L51">			return docket;</span>
+		}
+
+	@Bean
+	public WebMvcEndpointHandlerMapping webEndpointServletHandlerMapping(WebEndpointsSupplier webEndpointsSupplier, ServletEndpointsSupplier servletEndpointsSupplier, ControllerEndpointsSupplier controllerEndpointsSupplier, EndpointMediaTypes endpointMediaTypes, CorsEndpointProperties corsProperties, WebEndpointProperties webEndpointProperties, Environment environment) {
+<span class="nc" id="L56">		List&lt;ExposableEndpoint&lt;?&gt;&gt; allEndpoints = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L57">		Collection&lt;ExposableWebEndpoint&gt; webEndpoints = webEndpointsSupplier.getEndpoints();</span>
+<span class="nc" id="L58">		allEndpoints.addAll(webEndpoints);</span>
+<span class="nc" id="L59">		allEndpoints.addAll(servletEndpointsSupplier.getEndpoints());</span>
+<span class="nc" id="L60">		allEndpoints.addAll(controllerEndpointsSupplier.getEndpoints());</span>
+<span class="nc" id="L61">		String basePath = webEndpointProperties.getBasePath();</span>
+<span class="nc" id="L62">		EndpointMapping endpointMapping = new EndpointMapping(basePath);</span>
+<span class="nc" id="L63">		boolean shouldRegisterLinksMapping = this.shouldRegisterLinksMapping(webEndpointProperties, environment, basePath);</span>
+<span class="nc" id="L64">		return new WebMvcEndpointHandlerMapping(endpointMapping, webEndpoints, endpointMediaTypes, corsProperties.toCorsConfiguration(), new EndpointLinksResolver(allEndpoints, basePath), shouldRegisterLinksMapping, null);</span>
+	}
+
+
+	private boolean shouldRegisterLinksMapping(WebEndpointProperties webEndpointProperties, Environment environment, String basePath) {
+<span class="nc bnc" id="L69" title="All 6 branches missed.">		return webEndpointProperties.getDiscovery().isEnabled() &amp;&amp; (StringUtils.hasText(basePath) || ManagementPortType.get(environment).equals(ManagementPortType.DIFFERENT));</span>
+	}
+		
+
+		
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

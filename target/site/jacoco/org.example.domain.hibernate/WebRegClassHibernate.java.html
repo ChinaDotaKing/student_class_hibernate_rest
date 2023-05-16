@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebRegClassHibernate.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">jspdemo</a> &gt; <a href="index.source.html" class="el_package">org.example.domain.hibernate</a> &gt; <span class="el_source">WebRegClassHibernate.java</span></div><h1>WebRegClassHibernate.java</h1><pre class="source lang-java linenums">package org.example.domain.hibernate;
+
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.example.domain.WebRegClass;
+import org.springframework.stereotype.Component;
+
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+@Getter
+<span class="nc" id="L15">@Setter</span>
+@Entity
+@Table(name=&quot;WebRegClass&quot; )
+public class WebRegClassHibernate extends WebRegClass {
+
+
+
+    @Id
+    @GeneratedValue(
+            strategy = GenerationType.IDENTITY
+    )
+    @Column
+<span class="nc" id="L27">    private int id;</span>
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name =&quot;course_id&quot;)
+    @ToString.Exclude
+<span class="nc" id="L32">    private CourseHibernate courseHibernate;</span>
+
+
+
+
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name=&quot;semester_id&quot;)
+    @ToString.Exclude
+<span class="nc" id="L41">    private SemesterHibernate semesterHibernate;</span>
+
+
+
+
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name=&quot;professor_id&quot;)
+    @ToString.Exclude
+<span class="nc" id="L50">    private ProfessorHibernate professorHibernate;</span>
+
+    //@Column(name=&quot;professor_id&quot;)
+
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name=&quot;classroom_id&quot;)
+    @ToString.Exclude
+<span class="nc" id="L58">    private ClassroomHibernate classroomHibernate;</span>
+
+
+    //@Column(name=&quot;classroom_id&quot;)
+
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name=&quot;lecture_id&quot;)
+    @ToString.Exclude
+<span class="nc" id="L67">    private LectureHibernate lectureHibernate;</span>
+
+
+
+    //@Column(name=&quot;lecture_id&quot;)
+
+    @Column
+<span class="nc" id="L74">    private int capacity;</span>
+
+
+<span class="nc" id="L77">    @Column(name =&quot;is_active&quot;)</span>
+<span class="nc" id="L78">    private boolean is_active=true;</span>
+
+
+<span class="nc" id="L81">    @OneToMany(fetch = FetchType.EAGER, mappedBy = &quot;webRegClassHibernate&quot;)// default fetch type is LAZY</span>
+    @ToString.Exclude // to avoid infinite loop
+<span class="nc" id="L83">    private Set&lt;ApplicationHibernate&gt; applicationHibernates = new HashSet&lt;&gt;();</span>
+
+
+<span class="nc" id="L86">    @OneToMany(fetch = FetchType.EAGER, mappedBy = &quot;webRegClassHibernate&quot;)// default fetch type is LAZY</span>
+    @ToString.Exclude // to avoid infinite loop
+<span class="nc" id="L88">    private Set&lt;EnrollmentHibernate&gt; enrollmentHibernates = new HashSet&lt;&gt;();</span>
+
+<span class="nc" id="L90">    public WebRegClassHibernate(){</span>
+//        this.setCourse_id(courseHibernate.getId());
+//        this.setSemester_id(this.semesterHibernate.getId());
+//        this.setProfessor_id(this.professorHibernate.getId());
+//        this.setClassroom_id(classroomHibernate.getId());
+//        this.setLecture_id(lectureHibernate.getId());
+<span class="nc" id="L96">    }</span>
+<span class="nc" id="L97">    public WebRegClassHibernate(CourseHibernate courseHibernate, SemesterHibernate semesterHibernate, ProfessorHibernate professorHibernate, ClassroomHibernate classroomHibernate, LectureHibernate lectureHibernate, int capacity) {</span>
+<span class="nc" id="L98">        this.courseHibernate=courseHibernate;</span>
+<span class="nc" id="L99">        this.semesterHibernate=semesterHibernate;</span>
+<span class="nc" id="L100">        this.professorHibernate=professorHibernate;</span>
+<span class="nc" id="L101">        this.classroomHibernate=classroomHibernate;</span>
+<span class="nc" id="L102">        this.lectureHibernate=lectureHibernate;</span>
+<span class="nc" id="L103">        this.capacity=capacity;</span>
+<span class="nc" id="L104">        this.is_active=true;</span>
+<span class="nc" id="L105">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
